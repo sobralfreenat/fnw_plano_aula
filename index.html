@@ -484,8 +484,8 @@
                     <p><strong>Demonstração Visual 1: Integração de Soluções Externas (Ex: via <code>iframe</code>)</strong></p>
                     <p>Ao explicar Gateways e Intermediadores, pode ser útil mostrar visualmente como uma plataforma online pode "embarcar" soluções externas (como um checkout de pagamento) usando, por exemplo, a técnica de <code>iframe</code>.</p>
                     
-                    <input type="text" id="nameRecurso1" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Vídeo iFrame)">
-                    <input type="text" id="urlRecurso1" class="url-input" placeholder="Termos para busca no Google (Ex: iframe em ação)">
+                    <input type="text" id="nameRecurso1" class="name-input" placeholder="Termos para busca no Google (Ex: iframe em ação)">
+                    <input type="text" id="urlRecurso1" class="url-input" placeholder="URL do Link">
                     
                     <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;"> 
                         <button class="add-button" onclick="addToCollection('nameRecurso1', 'urlRecurso1', 'selectRecurso1', 'recurso1')">Salvar Link Acima na Coleção</button>
@@ -797,6 +797,16 @@
         }
 
         function generateModuleContent() {
+            // Clear previous dynamic resource collections
+            for (const key in urlCollections) {
+                if (key.startsWith('dyn_recurso_')) {
+                    delete urlCollections[key];
+                }
+            }
+            // It might be good to also clear the select elements themselves if they are not being overwritten
+            // However, since lessonWrapper.innerHTML = '' happens next, their HTML structure will be removed.
+            // The populateDynamicSelects will recreate them based on new content.
+
             const rawText = document.getElementById('newModuleTextarea').value;
             if (!rawText.trim()) {
                 alert("Por favor, cole o conteúdo do módulo na área de texto.");
@@ -822,6 +832,8 @@
             let currentSectionDiv = null;
             let currentUl = false;
             let currentOl = false;
+            let inRecursosVisuaisSection = false;
+            let dynamicResourceIndex = 0;
 
             function closeLists() {
                 if (currentUl) htmlContent += '</ul>\n';
@@ -840,29 +852,70 @@
             for (const line of lines) {
                 const trimmedLine = line.trim();
 
-                // Try to extract main title and subtitle (once)
                 if (!titleFound && trimmedLine.startsWith('**Módulo')) {
                     const titleMatch = trimmedLine.match(/^\*\*(.*?)(?:\s*–\s*(.*?))?\*\*$/);
                     if (titleMatch) {
                         mainPageH1.textContent = titleMatch[1] ? titleMatch[1].trim() : 'Título da Aula';
                         mainPageSubtitle.textContent = titleMatch[2] ? titleMatch[2].trim() : '';
                         titleFound = true;
-                        continue; // Skip this line for section processing
+                        continue; 
                     }
                 }
 
-                // Section Headers (e.g., **1. Objetivos da Aula:**)
-                const sectionMatch = trimmedLine.match(/^\*\*(\d+\.\s*.*?):\*\*$/);
-                if (sectionMatch) {
+                const mainSectionHeaderMatch = trimmedLine.match(/^\*\*(\d+\.\s*.*?):\*\*$/);
+                if (mainSectionHeaderMatch) {
                     closeLists();
-                    if (currentSectionDiv) htmlContent += '</div>\n'; // Close previous section
+                    if (currentSectionDiv) htmlContent += '</div>\n';
                     htmlContent += '<div class="lesson-section">\n';
-                    htmlContent += `  <h2>${formatLine(sectionMatch[1])}</h2>\n`;
+                    htmlContent += `  <h2>${formatLine(mainSectionHeaderMatch[1])}</h2>\n`;
                     currentSectionDiv = true;
+                    inRecursosVisuaisSection = trimmedLine.toLowerCase().includes("recursos visuais") || trimmedLine.toLowerCase().includes("demonstrações");
+                    if (inRecursosVisuaisSection) dynamicResourceIndex = 0; // Reset for new section
                     continue;
                 }
 
-                // Roteiro Etapas (e.g., *   **Etapa X: ...**)
+                // Dynamic Resource Block Generation (within "Recursos Visuais" section)
+                if (inRecursosVisuaisSection && trimmedLine.startsWith('*')) {
+                    const resourceMatch = trimmedLine.match(/^\*\s*\*\*Demonstração Visual (\d+):\s*(.*?)\*\*/);
+                    if (resourceMatch) {
+                        closeLists(); // Should not be in a list itself
+                        dynamicResourceIndex = parseInt(resourceMatch[1]); // Use index from text
+                        const resourceTitle = formatLine(resourceMatch[2]);
+                        let noteText = '';
+                        // Check next line for a note (simple check, assumes it's the immediate next line and starts with *)
+                        const nextLineIndex = lines.indexOf(line) + 1;
+                        if (nextLineIndex < lines.length) {
+                            const potentialNoteLine = lines[nextLineIndex].trim();
+                            if (potentialNoteLine.startsWith('*')) { // Assuming note also starts with an asterisk or similar marker
+                                noteText = formatLine(potentialNoteLine.substring(potentialNoteLine.indexOf('*') + 1).trim());
+                            }
+                        }
+
+                        htmlContent += '<div class="resource-placeholder">\n';
+                        htmlContent += `  <p><strong>Demonstração Visual ${dynamicResourceIndex}: ${resourceTitle}</strong></p>\n`;
+                        htmlContent += `  <input type="text" id="nameDynRecurso${dynamicResourceIndex}" class="name-input" placeholder="Nome/Rótulo para o Link">\n`;
+                        htmlContent += `  <input type="text" id="urlDynRecurso${dynamicResourceIndex}" class="url-input" placeholder="URL do Link">\n`;
+                        htmlContent += '  <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;">\n';
+                        htmlContent += `    <button class="add-button" onclick="addToCollection('nameDynRecurso${dynamicResourceIndex}', 'urlDynRecurso${dynamicResourceIndex}', 'selectDynRecurso${dynamicResourceIndex}', 'dyn_recurso_${dynamicResourceIndex}')">Salvar Link Acima na Coleção</button>\n`;
+                        htmlContent += `    <label for="selectDynRecurso${dynamicResourceIndex}" style="margin-left: 10px;">Carregar da Coleção:</label>\n`;
+                        htmlContent += `    <select id="selectDynRecurso${dynamicResourceIndex}" class="url-select" onchange="loadUrlFromSelect('selectDynRecurso${dynamicResourceIndex}', 'urlDynRecurso${dynamicResourceIndex}', 'nameDynRecurso${dynamicResourceIndex}')"><option value="">Selecione um Link Salvo...</option></select>\n`;
+                        htmlContent += '  </div>\n';
+                        htmlContent += '  <div class="action-button-group">\n';
+                        htmlContent += `    <button class="demo-button" onclick="handleOpenModal('urlDynRecurso${dynamicResourceIndex}')">Abrir URL do Campo Acima</button>\n`;
+                        htmlContent += '  </div>\n';
+                        if (noteText) {
+                            htmlContent += `  <p class="note">${noteText}</p>\n`;
+                        } else {
+                            htmlContent += '  <p class="note">Exemplo: Link para um vídeo, artigo, imagem ou página de demonstração.</p>\n';
+                        }
+                        htmlContent += '</div>\n';
+                        // If a note was processed from next line, we might want to skip that line in the main loop
+                        // For simplicity now, it might get re-processed as a regular list item if not careful with note marker.
+                        // The current note check is basic.
+                        continue;
+                    }
+                }
+
                 const etapaMatch = trimmedLine.match(/^\*\s*\*\*(Etapa\s\d+:.*?\s*\(.*\))\*\*$/);
                 if (etapaMatch) {
                     closeLists();
@@ -907,31 +960,60 @@
             if (currentSectionDiv) htmlContent += '</div>\n'; // Close the last section div
 
             lessonWrapper.innerHTML = htmlContent;
-            alert("Conteúdo da aula gerado na página! (Versão inicial)");
+            populateDynamicSelects(); // Call after new HTML is injected
+            alert("Conteúdo da aula gerado na página! (Versão com Recursos Dinâmicos)");
         }
 
+        function populateDynamicSelects() {
+            const dynamicSelects = document.querySelectorAll('select[id^="selectDynRecurso"]');
+            dynamicSelects.forEach(selectElement => {
+                const idParts = selectElement.id.match(/selectDynRecurso(\d+)/);
+                if (idParts && idParts[1]) {
+                    const index = idParts[1];
+                    const resourceKey = `dyn_recurso_${index}`;
+                    // Ensure this key exists in urlCollections if we are about to populate it
+                    // addToCollection handles creation if it doesn't exist when saving.
+                    // When loading from JSON, urlCollections will be fully populated.
+                    // When generating new content, the collection might be empty initially.
+                    if (!urlCollections[resourceKey]) {
+                        urlCollections[resourceKey] = [];
+                    }
+                    populateSelect(selectElement.id, resourceKey);
+                }
+            });
+        }
+
+        // Move these functions to global scope so they are accessible to the button onclick
         function savePageConfigAsJson() {
             const pageState = {
                 urlCollections: urlCollections,
                 inputs: {
-                    // Main content resource blocks
                     nameRecurso1: document.getElementById('nameRecurso1') ? document.getElementById('nameRecurso1').value : '',
                     urlRecurso1: document.getElementById('urlRecurso1') ? document.getElementById('urlRecurso1').value : '',
                     nameRecurso2: document.getElementById('nameRecurso2') ? document.getElementById('nameRecurso2').value : '',
                     urlRecurso2: document.getElementById('urlRecurso2') ? document.getElementById('urlRecurso2').value : '',
                     nameRecurso3: document.getElementById('nameRecurso3') ? document.getElementById('nameRecurso3').value : '',
                     urlRecurso3: document.getElementById('urlRecurso3') ? document.getElementById('urlRecurso3').value : '',
-                    // Suggested video
                     nameVideoRecurso0: document.getElementById('nameVideoRecurso0') ? document.getElementById('nameVideoRecurso0').value : '',
                     urlVideoRecurso0: document.getElementById('urlVideoRecurso0') ? document.getElementById('urlVideoRecurso0').value : '',
-                    // Sidebar items
                     nameSidebarIA: document.getElementById('nameSidebarIA') ? document.getElementById('nameSidebarIA').value : '',
                     urlSidebarIA: document.getElementById('urlSidebarIA') ? document.getElementById('urlSidebarIA').value : '',
-                    // New module textarea
                     newModuleTextarea: document.getElementById('newModuleTextarea') ? document.getElementById('newModuleTextarea').value : ''
                 },
+                dynamicResourceInputs: [],
                 lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : ''
             };
+
+            const dynamicNameInputs = document.querySelectorAll('input[id^="nameDynRecurso"]');
+            dynamicNameInputs.forEach(input => {
+                const index = input.id.replace('nameDynRecurso', '');
+                const urlInput = document.getElementById(`urlDynRecurso${index}`);
+                pageState.inputs.dynamicResourceInputs.push({
+                    idIndex: index,
+                    name: input.value,
+                    url: urlInput ? urlInput.value : ''
+                });
+            });
 
             const jsonData = JSON.stringify(pageState, null, 2);
             const blob = new Blob([jsonData], {type: 'application/json'});
@@ -956,35 +1038,38 @@
 
                         if (loadedState.urlCollections) {
                             urlCollections = loadedState.urlCollections;
-                            populateAllSelects(); // This will refresh all dropdowns
+                            populateAllSelects();
+                            if (loadedState.urlCollections) populateDynamicSelects(); 
+                        }
+                        
+                        if (loadedState.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
+                           document.getElementById('lesson-sections-wrapper').innerHTML = loadedState.lessonHTML;
+                           if (loadedState.urlCollections) populateDynamicSelects(); 
                         }
 
                         if (loadedState.inputs) {
                             const inputs = loadedState.inputs;
-                            // Restore main content resource blocks
                             if (document.getElementById('nameRecurso1')) document.getElementById('nameRecurso1').value = inputs.nameRecurso1 || '';
                             if (document.getElementById('urlRecurso1')) document.getElementById('urlRecurso1').value = inputs.urlRecurso1 || '';
                             if (document.getElementById('nameRecurso2')) document.getElementById('nameRecurso2').value = inputs.nameRecurso2 || '';
                             if (document.getElementById('urlRecurso2')) document.getElementById('urlRecurso2').value = inputs.urlRecurso2 || '';
                             if (document.getElementById('nameRecurso3')) document.getElementById('nameRecurso3').value = inputs.nameRecurso3 || '';
                             if (document.getElementById('urlRecurso3')) document.getElementById('urlRecurso3').value = inputs.urlRecurso3 || '';
-                            // Restore suggested video
                             if (document.getElementById('nameVideoRecurso0')) document.getElementById('nameVideoRecurso0').value = inputs.nameVideoRecurso0 || '';
                             if (document.getElementById('urlVideoRecurso0')) document.getElementById('urlVideoRecurso0').value = inputs.urlVideoRecurso0 || '';
-                            // Restore sidebar items
                             if (document.getElementById('nameSidebarIA')) document.getElementById('nameSidebarIA').value = inputs.nameSidebarIA || '';
                             if (document.getElementById('urlSidebarIA')) document.getElementById('urlSidebarIA').value = inputs.urlSidebarIA || '';
-                            // Restore new module textarea
                             if (document.getElementById('newModuleTextarea')) document.getElementById('newModuleTextarea').value = inputs.newModuleTextarea || '';
-                        }
-                        
-                        if (loadedState.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
-                           document.getElementById('lesson-sections-wrapper').innerHTML = loadedState.lessonHTML;
-                        }
 
-                        // Update H1 and Subtitle if they were saved (and if we decide to save them)
-                        // For now, assume H1 and Subtitle are derived from the pasted content upon generation
-                        // or could be saved as separate fields if desired.
+                            if (inputs.dynamicResourceInputs && Array.isArray(inputs.dynamicResourceInputs)) {
+                                inputs.dynamicResourceInputs.forEach(dynInputData => {
+                                    const nameField = document.getElementById(`nameDynRecurso${dynInputData.idIndex}`);
+                                    const urlField = document.getElementById(`urlDynRecurso${dynInputData.idIndex}`);
+                                    if (nameField) nameField.value = dynInputData.name || '';
+                                    if (urlField) urlField.value = dynInputData.url || '';
+                                });
+                            }
+                        }
 
                         alert("Configuração da página carregada com sucesso!");
                     } catch (error) {
