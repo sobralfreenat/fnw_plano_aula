@@ -399,167 +399,169 @@
         <h1>Módulo 1, Aula 1: Meios de Pagamento para E-commerce</h1>
         <p class="page-subtitle">Identificação, Integração e Aplicação em Projetos</p>
 
-        <div class="lesson-section">
-            <h2>Objetivos da Aula:</h2>
-            <ul>
-                <li>Compreender os diferentes meios de pagamento disponíveis para e-commerce.</li>
-                <li>Analisar as formas de integração desses meios, diferenciando Gateways de Pagamento e Intermediadores (prós e contras).</li>
-                <li>Capacitar os alunos a definir e justificar a escolha dos meios de pagamento e formas de integração para seus projetos de e-commerce.</li>
-                <li>Visualizar como soluções de pagamento podem ser integradas em ambientes online.</li>
-            </ul>
-        </div>
+        <div id="lesson-sections-wrapper">
+            <div class="lesson-section">
+                <h2>Objetivos da Aula:</h2>
+                <ul>
+                    <li>Compreender os diferentes meios de pagamento disponíveis para e-commerce.</li>
+                    <li>Analisar as formas de integração desses meios, diferenciando Gateways de Pagamento e Intermediadores (prós e contras).</li>
+                    <li>Capacitar os alunos a definir e justificar a escolha dos meios de pagamento e formas de integração para seus projetos de e-commerce.</li>
+                    <li>Visualizar como soluções de pagamento podem ser integradas em ambientes online.</li>
+                </ul>
+            </div>
 
-        <div class="lesson-section">
-            <h2>Duração Estimada:</h2>
-            <p><strong>Estimativa de Tempo Total para esta Aula:</strong> 1 a 2 horas (flexível conforme a dinâmica do grupo e profundidade das discussões).</p>
-        </div>
+            <div class="lesson-section">
+                <h2>Duração Estimada:</h2>
+                <p><strong>Estimativa de Tempo Total para esta Aula:</strong> 1 a 2 horas (flexível conforme a dinâmica do grupo e profundidade das discussões).</p>
+            </div>
 
-        <div class="lesson-section">
-            <h2>Roteiro da Aula:</h2>
-            
-            <ol>
-                <li>
-                    <h3>Aquecimento e Levantamento de Conhecimento Prévio (15-20 minutos)</h3>
-                    <p><strong>Atividade:</strong> Brainstorming.</p>
-                    <p><strong>Pergunta Disparadora para os alunos:</strong> "Quais são os meios de pagamento existentes para e-commerce que vocês conhecem ou já utilizaram?"</p>
-                    <p><strong>Materiais:</strong> Flipchart ou lousa digital.</p>
-                    <p><strong>Condução:</strong> Incentivar a participação e anotar as contribuições (ex: cartão de crédito, boleto, débito, transferência, Pix, carteiras digitais).</p>
-                </li>
+            <div class="lesson-section">
+                <h2>Roteiro da Aula:</h2>
+                
+                <ol>
+                    <li>
+                        <h3>Aquecimento e Levantamento de Conhecimento Prévio (15-20 minutos)</h3>
+                        <p><strong>Atividade:</strong> Brainstorming.</p>
+                        <p><strong>Pergunta Disparadora para os alunos:</strong> "Quais são os meios de pagamento existentes para e-commerce que vocês conhecem ou já utilizaram?"</p>
+                        <p><strong>Materiais:</strong> Flipchart ou lousa digital.</p>
+                        <p><strong>Condução:</strong> Incentivar a participação e anotar as contribuições (ex: cartão de crédito, boleto, débito, transferência, Pix, carteiras digitais).</p>
+                    </li>
 
-                <li>
-                    <h3>Apresentação e Discussão de Vídeo (20-25 minutos)</h3>
-                    <p><strong>Atividade:</strong> Apresentar um vídeo sobre o tema e promover uma discussão.</p>
+                    <li>
+                        <h3>Apresentação e Discussão de Vídeo (20-25 minutos)</h3>
+                        <p><strong>Atividade:</strong> Apresentar um vídeo sobre o tema e promover uma discussão.</p>
+                        
+                        <div class="resource-placeholder" style="padding-bottom: 5px; margin-bottom: 5px;">
+                            <p><strong>Recurso Sugerido:</strong> Vídeo "Qual a Melhor Forma de Pagamento para sua Loja Virtual?"</p>
+                            
+                            <input type="text" id="nameVideoRecurso0" class="name-input" value="Qual a Melhor Forma de Pagamento para sua Loja Virtual?" placeholder="Nome/Rótulo para o Vídeo (Ex: Melhor Forma Pagto)" oninput="updateSuggestedVideoUrlFromName()">
+                            <input type="text" id="urlVideoRecurso0" class="url-input" value="https://www.youtube.com/results?search_query=Qual+a+Melhor+Forma+de+Pagamento+para+sua+Loja+Virtual" placeholder="URL do Vídeo">
+                            
+                            <div class="collection-management" style="border-top: none; padding-top: 5px; margin-bottom: 10px; margin-top: 5px;"> 
+                                <button class="add-button" onclick="addToCollection('nameVideoRecurso0', 'urlVideoRecurso0', 'selectVideoRecurso0', 'videoRecurso')">Salvar Link Acima na Coleção</button>
+                                <label for="selectVideoRecurso0" style="margin-left: 10px;">Carregar da Coleção:</label>
+                                <select id="selectVideoRecurso0" class="url-select" onchange="loadUrlFromSelect('selectVideoRecurso0', 'urlVideoRecurso0', 'nameVideoRecurso0')">
+                                    <option value="">Selecione um Vídeo Salvo...</option>
+                                </select>
+                            </div>
+
+                            <div class="action-button-group">
+                                <button class="demo-button" onclick="handleOpenModal('urlVideoRecurso0')">Abrir URL do Campo Acima</button>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px;"><strong>Discussão Pós-Vídeo com os alunos:</strong> "De acordo com o vídeo (e suas experiências), como podemos integrar esses meios de pagamento no e-commerce?"</p>
+                    </li>
+
+                    <li>
+                        <h3>Exposição Dialogada: Formas de Integração (25-30 minutos)</h3>
+                        <p><strong>Tópico Central:</strong> "Formas de Integração dos Meios de Pagamento".</p>
+                        <p><strong>Conteúdo a ser abordado:</strong></p>
+                        <ul>
+                            <li><strong>Gateways de Pagamento:</strong> Definição, funcionamento, vantagens (ex: maior controle, personalização) e desvantagens (ex: custo inicial, complexidade).</li>
+                            <li><strong>Intermediadores de Pagamento (Subadquirentes):</strong> Definição, funcionamento, vantagens (ex: facilidade de integração, menor burocracia) e desvantagens (ex: taxas por transação, menor personalização).</li>
+                            <li>Mencionar exemplos de mercado para cada um.</li>
+                        </ul>
+                        <p><strong>Condução:</strong> Expor o conteúdo, incentivar perguntas e comparar as opções.</p>
+                    </li>
+
+                    <li>
+                        <h3>Atividade Prática para os Alunos (20-30 minutos)</h3>
+                        <p><strong>Atividade:</strong> Trabalho com os projetos de e-commerce dos alunos (individual ou em grupo).</p>
+                        <p><strong>Tarefa para os alunos:</strong> "Com base no que foi discutido e no perfil do mercado de atuação dos seus projetos, definam:</p>
+                        <ol>
+                            <li>Quais meios de pagamento pretendem oferecer?</li>
+                            <li>Qual forma de integração (Gateway ou Intermediador) seria mais adequada para o estágio inicial do projeto? Justifiquem as escolhas."</li>
+                        </ol>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="lesson-section">
+                <h2>Recursos Visuais / Demonstrações (Sugestões):</h2>
+                <p><em>Para enriquecer a explanação, considere usar os seguintes tipos de demonstrações visuais. Cole aqui as URLs dos recursos escolhidos.</em></p>
+
+                <div class="resource-placeholder">
+                    <p><strong>Demonstração Visual 1: Integração de Soluções Externas (Ex: via <code>iframe</code>)</strong></p>
+                    <p>Ao explicar Gateways e Intermediadores, pode ser útil mostrar visualmente como uma plataforma online pode "embarcar" soluções externas (como um checkout de pagamento) usando, por exemplo, a técnica de <code>iframe</code>.</p>
                     
-                    <div class="resource-placeholder" style="padding-bottom: 5px; margin-bottom: 5px;">
-                        <p><strong>Recurso Sugerido:</strong> Vídeo "Qual a Melhor Forma de Pagamento para sua Loja Virtual?"</p>
-                        
-                        <input type="text" id="nameVideoRecurso0" class="name-input" value="Qual a Melhor Forma de Pagamento para sua Loja Virtual?" placeholder="Nome/Rótulo para o Vídeo (Ex: Melhor Forma Pagto)" oninput="updateSuggestedVideoUrlFromName()">
-                        <input type="text" id="urlVideoRecurso0" class="url-input" value="https://www.youtube.com/results?search_query=Qual+a+Melhor+Forma+de+Pagamento+para+sua+Loja+Virtual" placeholder="URL do Vídeo">
-                        
-                        <div class="collection-management" style="border-top: none; padding-top: 5px; margin-bottom: 10px; margin-top: 5px;"> 
-                            <button class="add-button" onclick="addToCollection('nameVideoRecurso0', 'urlVideoRecurso0', 'selectVideoRecurso0', 'videoRecurso')">Salvar Link Acima na Coleção</button>
-                            <label for="selectVideoRecurso0" style="margin-left: 10px;">Carregar da Coleção:</label>
-                            <select id="selectVideoRecurso0" class="url-select" onchange="loadUrlFromSelect('selectVideoRecurso0', 'urlVideoRecurso0', 'nameVideoRecurso0')">
-                                <option value="">Selecione um Vídeo Salvo...</option>
-                            </select>
-                        </div>
-
-                        <div class="action-button-group">
-                            <button class="demo-button" onclick="handleOpenModal('urlVideoRecurso0')">Abrir URL do Campo Acima</button>
-                        </div>
+                    <input type="text" id="nameRecurso1" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Vídeo iFrame)">
+                    <input type="text" id="urlRecurso1" class="url-input" placeholder="Termos para busca no Google (Ex: iframe em ação)">
+                    
+                    <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;"> 
+                        <button class="add-button" onclick="addToCollection('nameRecurso1', 'urlRecurso1', 'selectRecurso1', 'recurso1')">Salvar Link Acima na Coleção</button>
+                        <label for="selectRecurso1" style="margin-left: 10px;">Carregar da Coleção:</label>
+                        <select id="selectRecurso1" class="url-select" onchange="loadUrlFromSelect('selectRecurso1', 'urlRecurso1', 'nameRecurso1')">
+                            <option value="">Selecione um Link Salvo...</option>
+                        </select>
                     </div>
-                    <p style="margin-top: 15px;"><strong>Discussão Pós-Vídeo com os alunos:</strong> "De acordo com o vídeo (e suas experiências), como podemos integrar esses meios de pagamento no e-commerce?"</p>
-                </li>
 
-                <li>
-                    <h3>Exposição Dialogada: Formas de Integração (25-30 minutos)</h3>
-                    <p><strong>Tópico Central:</strong> "Formas de Integração dos Meios de Pagamento".</p>
-                    <p><strong>Conteúdo a ser abordado:</strong></p>
-                    <ul>
-                        <li><strong>Gateways de Pagamento:</strong> Definição, funcionamento, vantagens (ex: maior controle, personalização) e desvantagens (ex: custo inicial, complexidade).</li>
-                        <li><strong>Intermediadores de Pagamento (Subadquirentes):</strong> Definição, funcionamento, vantagens (ex: facilidade de integração, menor burocracia) e desvantagens (ex: taxas por transação, menor personalização).</li>
-                        <li>Mencionar exemplos de mercado para cada um.</li>
-                    </ul>
-                    <p><strong>Condução:</strong> Expor o conteúdo, incentivar perguntas e comparar as opções.</p>
-                </li>
-
-                <li>
-                    <h3>Atividade Prática para os Alunos (20-30 minutos)</h3>
-                    <p><strong>Atividade:</strong> Trabalho com os projetos de e-commerce dos alunos (individual ou em grupo).</p>
-                    <p><strong>Tarefa para os alunos:</strong> "Com base no que foi discutido e no perfil do mercado de atuação dos seus projetos, definam:</p>
-                    <ol>
-                        <li>Quais meios de pagamento pretendem oferecer?</li>
-                        <li>Qual forma de integração (Gateway ou Intermediador) seria mais adequada para o estágio inicial do projeto? Justifiquem as escolhas."</li>
-                    </ol>
-                </li>
-            </ol>
-        </div>
-
-        <div class="lesson-section">
-            <h2>Recursos Visuais / Demonstrações (Sugestões):</h2>
-            <p><em>Para enriquecer a explanação, considere usar os seguintes tipos de demonstrações visuais. Cole aqui as URLs dos recursos escolhidos.</em></p>
-
-            <div class="resource-placeholder">
-                <p><strong>Demonstração Visual 1: Integração de Soluções Externas (Ex: via <code>iframe</code>)</strong></p>
-                <p>Ao explicar Gateways e Intermediadores, pode ser útil mostrar visualmente como uma plataforma online pode "embarcar" soluções externas (como um checkout de pagamento) usando, por exemplo, a técnica de <code>iframe</code>.</p>
-                
-                <input type="text" id="nameRecurso1" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Vídeo iFrame)">
-                <input type="text" id="urlRecurso1" class="url-input" placeholder="Termos para busca no Google (Ex: iframe em ação)">
-                
-                <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;"> 
-                    <button class="add-button" onclick="addToCollection('nameRecurso1', 'urlRecurso1', 'selectRecurso1', 'recurso1')">Salvar Link Acima na Coleção</button>
-                    <label for="selectRecurso1" style="margin-left: 10px;">Carregar da Coleção:</label>
-                    <select id="selectRecurso1" class="url-select" onchange="loadUrlFromSelect('selectRecurso1', 'urlRecurso1', 'nameRecurso1')">
-                        <option value="">Selecione um Link Salvo...</option>
-                    </select>
+                    <div class="action-button-group">
+                        <button class="demo-button" onclick="handleOpenModal('urlRecurso1')">Abrir URL do Campo Acima</button>
+                    </div>
+                    <p class="note">Exemplo: Digite termos como "iframe em ação" ou "exemplos de checkout embarcado".</p>
                 </div>
 
-                <div class="action-button-group">
-                    <button class="demo-button" onclick="handleOpenModal('urlRecurso1')">Abrir URL do Campo Acima</button>
+                <div class="resource-placeholder">
+                    <p><strong>Demonstração Visual 2: Exemplo de Interface de Checkout</strong></p>
+                    <p>Para a atividade prática dos alunos, ou para ilustrar os tipos de integração, mostrar um exemplo de como uma interface de checkout (mesmo que simulada ou um mockup) se apresentaria dentro de um ambiente de loja virtual.</p>
+                    
+                    <input type="text" id="nameRecurso2" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Checkout Exemplo)">
+                    <input type="text" id="urlRecurso2" class="url-input" placeholder="URL do Link">
+
+                    <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;">
+                        <button class="add-button" onclick="addToCollection('nameRecurso2', 'urlRecurso2', 'selectRecurso2', 'recurso2')">Salvar Link Acima na Coleção</button>
+                        <label for="selectRecurso2" style="margin-left: 10px;">Carregar da Coleção:</label>
+                        <select id="selectRecurso2" class="url-select" onchange="loadUrlFromSelect('selectRecurso2', 'urlRecurso2', 'nameRecurso2')">
+                            <option value="">Selecione um Link Salvo...</option>
+                        </select>
+                    </div>
+
+                    <div class="action-button-group">
+                        <button class="demo-button" onclick="handleOpenModal('urlRecurso2')">Abrir URL do Campo Acima</button>
+                    </div>
+                    <p class="note">Exemplo: Um link para um mockup interativo, uma imagem de um bom exemplo de checkout, ou um vídeo de navegação.</p>
                 </div>
-                <p class="note">Exemplo: Digite termos como "iframe em ação" ou "exemplos de checkout embarcado".</p>
+                
+                <div class="resource-placeholder">
+                    <p><strong>Demonstração Visual 3 (Opcional): Conceito de SAAS em Plataformas de E-commerce</strong></p>
+                    <p>Se relevante, pode-se contextualizar brevemente como plataformas SAAS (Software as a Service) oferecem estruturas prontas que facilitam integrações e o desenvolvimento de lojas virtuais.</p>
+                    
+                    <input type="text" id="nameRecurso3" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Artigo SAAS)">
+                    <input type="text" id="urlRecurso3" class="url-input" placeholder="URL do Link">
+
+                    <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;">
+                        <button class="add-button" onclick="addToCollection('nameRecurso3', 'urlRecurso3', 'selectRecurso3', 'recurso3')">Salvar Link Acima na Coleção</button>
+                        <label for="selectRecurso3" style="margin-left: 10px;">Carregar da Coleção:</label>
+                        <select id="selectRecurso3" class="url-select" onchange="loadUrlFromSelect('selectRecurso3', 'urlRecurso3', 'nameRecurso3')">
+                            <option value="">Selecione um Link Salvo...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="action-button-group">
+                        <button class="demo-button" onclick="handleOpenModal('urlRecurso3')">Abrir URL do Campo Acima</button>
+                    </div>
+                    <p class="note">Exemplo: Um link para um artigo explicativo conciso, um infográfico simples sobre SAAS.</p>
+                </div>
             </div>
 
-            <div class="resource-placeholder">
-                <p><strong>Demonstração Visual 2: Exemplo de Interface de Checkout</strong></p>
-                <p>Para a atividade prática dos alunos, ou para ilustrar os tipos de integração, mostrar um exemplo de como uma interface de checkout (mesmo que simulada ou um mockup) se apresentaria dentro de um ambiente de loja virtual.</p>
-                
-                <input type="text" id="nameRecurso2" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Checkout Exemplo)">
-                <input type="text" id="urlRecurso2" class="url-input" placeholder="URL do Link">
-
-                <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;">
-                    <button class="add-button" onclick="addToCollection('nameRecurso2', 'urlRecurso2', 'selectRecurso2', 'recurso2')">Salvar Link Acima na Coleção</button>
-                    <label for="selectRecurso2" style="margin-left: 10px;">Carregar da Coleção:</label>
-                    <select id="selectRecurso2" class="url-select" onchange="loadUrlFromSelect('selectRecurso2', 'urlRecurso2', 'nameRecurso2')">
-                        <option value="">Selecione um Link Salvo...</option>
-                    </select>
-                </div>
-
-                <div class="action-button-group">
-                    <button class="demo-button" onclick="handleOpenModal('urlRecurso2')">Abrir URL do Campo Acima</button>
-                </div>
-                <p class="note">Exemplo: Um link para um mockup interativo, uma imagem de um bom exemplo de checkout, ou um vídeo de navegação.</p>
+            <div class="lesson-section">
+                <h2>Materiais Necessários para a Aula:</h2>
+                <ul>
+                    <li>Computador com acesso à internet e projetor.</li>
+                    <li>Flipchart ou lousa digital.</li>
+                    <li>Link do vídeo sobre meios de pagamento (verificar/atualizar).</li>
+                    <li>Links para os recursos visuais/demonstrativos escolhidos (preencher acima).</li>
+                </ul>
             </div>
-            
-            <div class="resource-placeholder">
-                <p><strong>Demonstração Visual 3 (Opcional): Conceito de SAAS em Plataformas de E-commerce</strong></p>
-                <p>Se relevante, pode-se contextualizar brevemente como plataformas SAAS (Software as a Service) oferecem estruturas prontas que facilitam integrações e o desenvolvimento de lojas virtuais.</p>
-                
-                <input type="text" id="nameRecurso3" class="name-input" placeholder="Nome/Rótulo para o Link (Ex: Artigo SAAS)">
-                <input type="text" id="urlRecurso3" class="url-input" placeholder="URL do Link">
 
-                <div class="collection-management" style="border-top: none; padding-top: 0; margin-bottom: 10px;">
-                    <button class="add-button" onclick="addToCollection('nameRecurso3', 'urlRecurso3', 'selectRecurso3', 'recurso3')">Salvar Link Acima na Coleção</button>
-                    <label for="selectRecurso3" style="margin-left: 10px;">Carregar da Coleção:</label>
-                    <select id="selectRecurso3" class="url-select" onchange="loadUrlFromSelect('selectRecurso3', 'urlRecurso3', 'nameRecurso3')">
-                        <option value="">Selecione um Link Salvo...</option>
-                    </select>
-                </div>
-                
-                <div class="action-button-group">
-                    <button class="demo-button" onclick="handleOpenModal('urlRecurso3')">Abrir URL do Campo Acima</button>
-                </div>
-                <p class="note">Exemplo: Um link para um artigo explicativo conciso, um infográfico simples sobre SAAS.</p>
+            <div class="lesson-section">
+                <h2>Sugestões para Avaliação dos Alunos:</h2>
+                <ul>
+                    <li>Participação nas discussões e no brainstorming.</li>
+                    <li>Qualidade da justificativa para a escolha dos meios de pagamento e forma de integração para o projeto de e-commerce.</li>
+                    <li>(Se aplicável) Apresentação do planejamento de integração.</li>
+                </ul>
             </div>
-        </div>
-
-        <div class="lesson-section">
-            <h2>Materiais Necessários para a Aula:</h2>
-            <ul>
-                <li>Computador com acesso à internet e projetor.</li>
-                <li>Flipchart ou lousa digital.</li>
-                <li>Link do vídeo sobre meios de pagamento (verificar/atualizar).</li>
-                <li>Links para os recursos visuais/demonstrativos escolhidos (preencher acima).</li>
-            </ul>
-        </div>
-
-        <div class="lesson-section">
-            <h2>Sugestões para Avaliação dos Alunos:</h2>
-            <ul>
-                <li>Participação nas discussões e no brainstorming.</li>
-                <li>Qualidade da justificativa para a escolha dos meios de pagamento e forma de integração para o projeto de e-commerce.</li>
-                <li>(Se aplicável) Apresentação do planejamento de integração.</li>
-            </ul>
         </div>
     </div>
 
@@ -794,6 +796,120 @@
             }
         }
 
+        function generateModuleContent() {
+            const rawText = document.getElementById('newModuleTextarea').value;
+            if (!rawText.trim()) {
+                alert("Por favor, cole o conteúdo do módulo na área de texto.");
+                return;
+            }
+
+            const mainPageH1 = document.querySelector('.container > h1');
+            const mainPageSubtitle = document.querySelector('.container > .page-subtitle');
+            const lessonWrapper = document.getElementById('lesson-sections-wrapper');
+
+            if (!mainPageH1 || !mainPageSubtitle || !lessonWrapper) {
+                alert("Erro: Elementos da página principal não encontrados para atualização.");
+                return;
+            }
+
+            // Clear previous content
+            lessonWrapper.innerHTML = '';
+            mainPageH1.textContent = 'Título da Aula (Aguardando Geração)'; // Placeholder
+            mainPageSubtitle.textContent = 'Subtítulo (Aguardando Geração)'; // Placeholder
+
+            const lines = rawText.split(/\r?\n/);
+            let htmlContent = '';
+            let currentSectionDiv = null;
+            let currentUl = false;
+            let currentOl = false;
+
+            function closeLists() {
+                if (currentUl) htmlContent += '</ul>\n';
+                if (currentOl) htmlContent += '</ol>\n';
+                currentUl = false;
+                currentOl = false;
+            }
+            
+            function formatLine(line) {
+                line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                line = line.replace(/`(.*?)`/g, '<code>$1</code>');
+                return line;
+            }
+
+            let titleFound = false;
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+
+                // Try to extract main title and subtitle (once)
+                if (!titleFound && trimmedLine.startsWith('**Módulo')) {
+                    const titleMatch = trimmedLine.match(/^\*\*(.*?)(?:\s*–\s*(.*?))?\*\*$/);
+                    if (titleMatch) {
+                        mainPageH1.textContent = titleMatch[1] ? titleMatch[1].trim() : 'Título da Aula';
+                        mainPageSubtitle.textContent = titleMatch[2] ? titleMatch[2].trim() : '';
+                        titleFound = true;
+                        continue; // Skip this line for section processing
+                    }
+                }
+
+                // Section Headers (e.g., **1. Objetivos da Aula:**)
+                const sectionMatch = trimmedLine.match(/^\*\*(\d+\.\s*.*?):\*\*$/);
+                if (sectionMatch) {
+                    closeLists();
+                    if (currentSectionDiv) htmlContent += '</div>\n'; // Close previous section
+                    htmlContent += '<div class="lesson-section">\n';
+                    htmlContent += `  <h2>${formatLine(sectionMatch[1])}</h2>\n`;
+                    currentSectionDiv = true;
+                    continue;
+                }
+
+                // Roteiro Etapas (e.g., *   **Etapa X: ...**)
+                const etapaMatch = trimmedLine.match(/^\*\s*\*\*(Etapa\s\d+:.*?\s*\(.*\))\*\*$/);
+                if (etapaMatch) {
+                    closeLists();
+                    htmlContent += `  <h3>${formatLine(etapaMatch[1])}</h3>\n`;
+                    continue;
+                }
+                
+                // Unordered list items (e.g., *   item)
+                if (trimmedLine.startsWith('*')) {
+                    if (currentOl) closeLists(); // Close OL if open before starting UL
+                    if (!currentUl) {
+                        htmlContent += '  <ul>\n';
+                        currentUl = true;
+                    }
+                    htmlContent += `    <li>${formatLine(trimmedLine.substring(trimmedLine.indexOf('*') + 1).trim())}</li>\n`;
+                    continue;
+                }
+
+                // Ordered list items (e.g., 1.  item)
+                const orderedListMatch = trimmedLine.match(/^(\d+)\.\s+(.*)/);
+                if (orderedListMatch) {
+                    if (currentUl) closeLists(); // Close UL if open before starting OL
+                    if (!currentOl) {
+                        htmlContent += '  <ol>\n';
+                        currentOl = true;
+                    }
+                    htmlContent += `    <li>${formatLine(orderedListMatch[2])}</li>\n`;
+                    continue;
+                }
+
+                // If it's not any of the above and is a non-empty line, treat as paragraph
+                if (trimmedLine) {
+                    closeLists();
+                    htmlContent += `  <p>${formatLine(trimmedLine)}</p>\n`;
+                } else {
+                    // If it's an empty line, it might signify end of a list or paragraph separation
+                    closeLists(); 
+                }
+            }
+
+            closeLists(); // Close any open lists at the end
+            if (currentSectionDiv) htmlContent += '</div>\n'; // Close the last section div
+
+            lessonWrapper.innerHTML = htmlContent;
+            alert("Conteúdo da aula gerado na página! (Versão inicial)");
+        }
+
         function savePageConfigAsJson() {
             const pageState = {
                 urlCollections: urlCollections,
@@ -814,8 +930,7 @@
                     // New module textarea
                     newModuleTextarea: document.getElementById('newModuleTextarea') ? document.getElementById('newModuleTextarea').value : ''
                 },
-                // We could also save the dynamically generated main content HTML here later
-                // mainContentHTML: document.getElementById('main-lesson-content-area') ? document.getElementById('main-lesson-content-area').innerHTML : '' 
+                lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : ''
             };
 
             const jsonData = JSON.stringify(pageState, null, 2);
@@ -863,9 +978,13 @@
                             if (document.getElementById('newModuleTextarea')) document.getElementById('newModuleTextarea').value = inputs.newModuleTextarea || '';
                         }
                         
-                        // if (loadedState.mainContentHTML && document.getElementById('main-lesson-content-area')) {
-                        //    document.getElementById('main-lesson-content-area').innerHTML = loadedState.mainContentHTML;
-                        // }
+                        if (loadedState.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
+                           document.getElementById('lesson-sections-wrapper').innerHTML = loadedState.lessonHTML;
+                        }
+
+                        // Update H1 and Subtitle if they were saved (and if we decide to save them)
+                        // For now, assume H1 and Subtitle are derived from the pasted content upon generation
+                        // or could be saved as separate fields if desired.
 
                         alert("Configuração da página carregada com sucesso!");
                     } catch (error) {
