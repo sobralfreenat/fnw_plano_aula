@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Aula: Meios de Pagamento para E-commerce</title>
+    <title>Plano de Aula: Meios de Pagamento para E-commerce (com Tutorial)</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -352,13 +352,171 @@
             font-size: 0.9em;
             resize: vertical;
         }
+
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 9998;
+            pointer-events: none;
+        }
+        
+        .tutorial-container {
+            position: fixed;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            max-width: 400px;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+        
+        .tutorial-titulo {
+            font-size: 1.2em;
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-right: 25px; /* Espaço para o botão fechar */
+        }
+        
+        .tutorial-descricao {
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+        
+        .tutorial-botoes {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .tutorial-botao {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .tutorial-botao-anterior {
+            background-color: #e0e0e0;
+            color: #555;
+        }
+        
+        .tutorial-botao-proximo {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .tutorial-botao-fechar {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        /* Botão X para fechar a qualquer momento */
+        .tutorial-fechar-x {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            line-height: 1;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .tutorial-fechar-x:hover {
+            color: #e74c3c;
+        }
+        
+        /* Timeline de passos do tutorial */
+        .tutorial-timeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .tutorial-ponto {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin: 0 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tutorial-ponto:hover {
+            background-color: #95a5a6;
+            transform: scale(1.2);
+        }
+        
+        .tutorial-ponto.ativo {
+            background-color: #3498db;
+            transform: scale(1.3);
+        }
+
+        .tutorial-elemento-destacado {
+            position: relative;
+            z-index: 9999;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.8);
+            border-radius: 3px;
+        }
+        
+        .tutorial-botao-sidebar {
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <button id="sidebar-toggle-button">&#9776;</button> <!-- Hamburger Icon -->
 
     <div id="fixed-sidebar">
-        <div class="sidebar-logo">LOGO AQUI</div>
+        <div class="sidebar-logo">SISTEMA COM TUTORIAL</div>
+        
+        <!-- Novo seletor de planos de aula -->
+        <div class="sidebar-item">
+            <h4>Planos de Aula Prontos</h4>
+            <p style="font-size: 0.85em; margin-bottom: 10px;">
+                Selecione um plano pré-configurado:
+            </p>
+            <select id="planoPreConfigurado" class="url-select" style="width: 100%; margin-bottom: 8px;">
+                <option value="">Escolha um plano...</option>
+                <option value="meios_pagamento">Meios de Pagamento para E-commerce</option>
+                <option value="seguranca_ecommerce">Segurança em E-commerce</option>
+                <option value="erp_sistemas">Sistemas ERP para Empresas</option>
+                <option value="marketing_digital">Marketing Digital</option>
+            </select>
+            <button class="demo-button" style="width: 100%; margin-top: 5px;" onclick="carregarPlanoPreConfigurado()">
+                Carregar Plano Selecionado
+            </button>
+            <hr style="margin: 15px 0; border-top: 1px dashed #ccc;">
+            <p style="font-size: 0.85em; margin-bottom: 10px;">
+                Ou carregue um plano personalizado:
+            </p>
+            <input type="file" id="carregarPlanoInput" accept=".json" style="display: none;">
+            <button class="demo-button" style="width: 100%; background-color: #17a2b8;" onclick="document.getElementById('carregarPlanoInput').click()">
+                Escolher Arquivo de Plano
+            </button>
+        </div>
         
         <div class="sidebar-item">
             <h4>Assistente IA</h4>
@@ -1080,6 +1238,544 @@
             }
             event.target.value = null; // Reset file input
         }
+
+        // Função para carregar planos pré-configurados
+        function carregarPlanoPreConfigurado() {
+            const seletor = document.getElementById('planoPreConfigurado');
+            const planoSelecionado = seletor.value;
+            
+            if (!planoSelecionado) {
+                alert("Por favor, selecione um plano de aula.");
+                return;
+            }
+            
+            // URLs dos arquivos JSON de planos predefinidos
+            const planosUrls = {
+                meios_pagamento: "planos/meios_pagamento.json",
+                seguranca_ecommerce: "planos/seguranca_ecommerce.json",
+                erp_sistemas: "planos/erp_sistemas.json",
+                marketing_digital: "planos/marketing_digital.json"
+            };
+            
+            const url = planosUrls[planoSelecionado];
+            
+            // Feedback visual para o usuário
+            document.querySelector('.container > h1').textContent = "Carregando plano...";
+            document.querySelector('.page-subtitle').textContent = "Por favor, aguarde enquanto carregamos o conteúdo.";
+            
+            // Carregar o arquivo JSON
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erro ao carregar o plano: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Atualizar as coleções de URLs
+                    if (data.urlCollections) {
+                        urlCollections = data.urlCollections;
+                        populateAllSelects();
+                    }
+                    
+                    // Atualizar o conteúdo HTML da aula
+                    if (data.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
+                        document.getElementById('lesson-sections-wrapper').innerHTML = data.lessonHTML;
+                        populateDynamicSelects();
+                    }
+                    
+                    // Atualizar os valores dos inputs
+                    if (data.inputs) {
+                        const inputs = data.inputs;
+                        if (document.getElementById('nameRecurso1')) document.getElementById('nameRecurso1').value = inputs.nameRecurso1 || '';
+                        if (document.getElementById('urlRecurso1')) document.getElementById('urlRecurso1').value = inputs.urlRecurso1 || '';
+                        if (document.getElementById('nameRecurso2')) document.getElementById('nameRecurso2').value = inputs.nameRecurso2 || '';
+                        if (document.getElementById('urlRecurso2')) document.getElementById('urlRecurso2').value = inputs.urlRecurso2 || '';
+                        if (document.getElementById('nameRecurso3')) document.getElementById('nameRecurso3').value = inputs.nameRecurso3 || '';
+                        if (document.getElementById('urlRecurso3')) document.getElementById('urlRecurso3').value = inputs.urlRecurso3 || '';
+                        if (document.getElementById('nameVideoRecurso0')) document.getElementById('nameVideoRecurso0').value = inputs.nameVideoRecurso0 || '';
+                        if (document.getElementById('urlVideoRecurso0')) document.getElementById('urlVideoRecurso0').value = inputs.urlVideoRecurso0 || '';
+                        if (document.getElementById('nameSidebarIA')) document.getElementById('nameSidebarIA').value = inputs.nameSidebarIA || '';
+                        if (document.getElementById('urlSidebarIA')) document.getElementById('urlSidebarIA').value = inputs.urlSidebarIA || '';
+                        
+                        // Atualizar recursos dinâmicos, se existirem
+                        if (inputs.dynamicResourceInputs && Array.isArray(inputs.dynamicResourceInputs)) {
+                            inputs.dynamicResourceInputs.forEach(dynInputData => {
+                                const nameField = document.getElementById(`nameDynRecurso${dynInputData.idIndex}`);
+                                const urlField = document.getElementById(`urlDynRecurso${dynInputData.idIndex}`);
+                                if (nameField) nameField.value = dynInputData.name || '';
+                                if (urlField) urlField.value = dynInputData.url || '';
+                            });
+                        }
+                    }
+                    
+                    // Atualizar título da página com base no plano carregado
+                    const titulos = {
+                        meios_pagamento: "Módulo 1, Aula 1: Meios de Pagamento para E-commerce",
+                        seguranca_ecommerce: "Módulo 1, Aula 2: Segurança em E-commerce",
+                        erp_sistemas: "Módulo 2, Aula 1: Sistemas ERP para Empresas",
+                        marketing_digital: "Módulo 2, Aula 2: Marketing Digital"
+                    };
+                    
+                    document.querySelector('.container > h1').textContent = titulos[planoSelecionado] || data.pageTitle || "Plano de Aula Carregado";
+                    
+                    alert("Plano de aula carregado com sucesso!");
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar o plano:", error);
+                    alert("Erro ao carregar o plano de aula: " + error.message);
+                    document.querySelector('.container > h1').textContent = "Erro ao carregar";
+                    document.querySelector('.page-subtitle').textContent = "Tente novamente ou selecione outro plano.";
+                });
+        }
+
+        // Evento para carregar arquivo de plano personalizado
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadConfigInput = document.getElementById('loadConfigInput');
+            if (loadConfigInput) {
+                loadConfigInput.addEventListener('change', loadPageConfigFromJson, false);
+            }
+            
+            const carregarPlanoInput = document.getElementById('carregarPlanoInput');
+            if (carregarPlanoInput) {
+                carregarPlanoInput.addEventListener('change', loadPageConfigFromJson, false);
+            }
+        });
+    </script>
+
+    <!-- Tutorial Interativo -->
+    <script>
+    // Tutorial Interativo para Sistema de Planos de Aula
+    // Este script cria um tour guiado passo a passo para usuários iniciantes
+
+    const tutorialInterativo = {
+        ativo: false,
+        passoAtual: 0,
+        tutorial: null,
+        overlay: null,
+        
+        // Definição das etapas do tutorial
+        passos: [
+            {
+                titulo: "Bem-vindo ao Sistema de Planos de Aula!",
+                descricao: "Este tutorial rápido vai mostrar como usar as principais funcionalidades do sistema. Clique em 'Próximo' para continuar.",
+                elemento: "body",
+                posicao: "centro",
+                destacar: false
+            },
+            {
+                titulo: "Barra Lateral",
+                descricao: "Esta é a barra lateral onde você encontra as principais ferramentas para criar e gerenciar seus planos de aula.",
+                elemento: "#fixed-sidebar",
+                posicao: "direita",
+                destacar: true
+            },
+            {
+                titulo: "Novo Conteúdo",
+                descricao: "Clique aqui para abrir o painel onde você irá colar seu texto de plano de aula.",
+                elemento: ".accordion-header",
+                posicao: "direita",
+                destacar: true,
+                acao: function() {
+                    // Abrir o acordeão se não estiver aberto
+                    const painel = document.querySelector('.accordion-panel');
+                    if (painel && !painel.classList.contains('show')) {
+                        document.querySelector('.accordion-header').click();
+                    }
+                }
+            },
+            {
+                titulo: "Cole seu texto aqui",
+                descricao: "Cole o texto do seu plano de aula neste campo. O sistema reconhece formatos específicos como títulos, listas e recursos visuais.",
+                elemento: "#newModuleTextarea",
+                posicao: "direita",
+                destacar: true
+            },
+            {
+                titulo: "Gerar Conteúdo",
+                descricao: "Após colar seu texto, clique neste botão para transformá-lo em um plano formatado.",
+                elemento: ".accordion-panel .demo-button",
+                posicao: "direita",
+                destacar: true
+            },
+            {
+                titulo: "Recursos Visuais",
+                descricao: "Quando seu plano for gerado, você terá blocos como este para adicionar links e recursos visuais para cada demonstração.",
+                elemento: ".resource-placeholder",
+                posicao: "abaixo",
+                destacar: true
+            },
+            {
+                titulo: "Adicionar Recursos",
+                descricao: "Digite um nome e URL para o recurso, depois clique em 'Salvar Link Acima na Coleção' para guardá-lo para uso futuro.",
+                elemento: ".add-button",
+                posicao: "acima",
+                destacar: true
+            },
+            {
+                titulo: "Salvar Configuração",
+                descricao: "Quando terminar de criar seu plano, clique aqui para salvar toda a configuração em um arquivo JSON que pode ser carregado posteriormente.",
+                elemento: "button[onclick='savePageConfigAsJson()']",
+                posicao: "esquerda",
+                destacar: true
+            },
+            {
+                titulo: "Parabéns!",
+                descricao: "Você concluiu o tutorial básico. Agora você está pronto para criar seus próprios planos de aula interativos. Você pode rever este tutorial a qualquer momento clicando no botão 'Tutorial' que será adicionado à barra lateral.",
+                elemento: "body",
+                posicao: "centro",
+                destacar: false
+            }
+        ],
+        
+        // Inicializa o tutorial
+        iniciar: function() {
+            if (this.tutorial) return; // Evita iniciar duas vezes
+            
+            this.ativo = true;
+            this.passoAtual = 0;
+            this.criarElementos();
+            this.mostrarPasso(0);
+            
+            // Adiciona o botão de tutorial permanente na barra lateral
+            this.adicionarBotaoTutorial();
+        },
+        
+        // Cria os elementos necessários para o tutorial
+        criarElementos: function() {
+            // Overlay semi-transparente
+            this.overlay = document.createElement('div');
+            this.overlay.className = 'tutorial-overlay';
+            
+            // Container do tutorial
+            this.tutorial = document.createElement('div');
+            this.tutorial.className = 'tutorial-container';
+            
+            // Estilo para os elementos
+            const style = document.createElement('style');
+            style.textContent = `
+                .tutorial-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.6);
+                    z-index: 9998;
+                    pointer-events: none;
+                }
+                
+                .tutorial-container {
+                    position: fixed;
+                    background-color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                    padding: 20px;
+                    max-width: 400px;
+                    z-index: 9999;
+                    pointer-events: auto;
+                }
+                
+                .tutorial-titulo {
+                    font-size: 1.2em;
+                    color: #3498db;
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                    padding-bottom: 5px;
+                    border-bottom: 1px solid #eee;
+                    padding-right: 25px; /* Espaço para o botão fechar */
+                }
+                
+                .tutorial-descricao {
+                    margin-bottom: 20px;
+                    font-size: 0.95em;
+                    line-height: 1.4;
+                }
+                
+                .tutorial-botoes {
+                    display: flex;
+                    justify-content: space-between;
+                }
+                
+                .tutorial-botao {
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                }
+                
+                .tutorial-botao-anterior {
+                    background-color: #e0e0e0;
+                    color: #555;
+                }
+                
+                .tutorial-botao-proximo {
+                    background-color: #3498db;
+                    color: white;
+                }
+                
+                .tutorial-botao-fechar {
+                    background-color: #e74c3c;
+                    color: white;
+                }
+                
+                /* Botão X para fechar a qualquer momento */
+                .tutorial-fechar-x {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: none;
+                    border: none;
+                    font-size: 1.5em;
+                    line-height: 1;
+                    color: #999;
+                    cursor: pointer;
+                    padding: 0;
+                }
+                
+                .tutorial-fechar-x:hover {
+                    color: #e74c3c;
+                }
+                
+                /* Timeline de passos do tutorial */
+                .tutorial-timeline {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 15px 0;
+                    flex-wrap: wrap;
+                }
+                
+                .tutorial-ponto {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background-color: #ccc;
+                    margin: 0 4px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .tutorial-ponto:hover {
+                    background-color: #95a5a6;
+                    transform: scale(1.2);
+                }
+                
+                .tutorial-ponto.ativo {
+                    background-color: #3498db;
+                    transform: scale(1.3);
+                }
+
+                .tutorial-elemento-destacado {
+                    position: relative;
+                    z-index: 9999;
+                    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.8);
+                    border-radius: 3px;
+                }
+                
+                .tutorial-botao-sidebar {
+                    background-color: #2ecc71;
+                    color: white;
+                    padding: 10px 15px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    width: 100%;
+                    margin-top: 15px;
+                    font-weight: bold;
+                }
+            `;
+            
+            document.head.appendChild(style);
+            document.body.appendChild(this.overlay);
+            document.body.appendChild(this.tutorial);
+        },
+        
+        // Mostra um passo específico do tutorial
+        mostrarPasso: function(index) {
+            if (!this.tutorial || index < 0 || index >= this.passos.length) return;
+            
+            // Limpa destaque anterior
+            const elementoAnterior = document.querySelector('.tutorial-elemento-destacado');
+            if (elementoAnterior) {
+                elementoAnterior.classList.remove('tutorial-elemento-destacado');
+            }
+            
+            const passo = this.passos[index];
+            this.passoAtual = index;
+            
+            // HTML do tutorial
+            let tutorialHTML = `
+                <button class="tutorial-fechar-x" onclick="tutorialInterativo.fechar()">&times;</button>
+                <h3 class="tutorial-titulo">${passo.titulo}</h3>
+                <p class="tutorial-descricao">${passo.descricao}</p>
+                <div class="tutorial-timeline">
+            `;
+            
+            // Adiciona a timeline de pontos para navegação direta
+            for (let i = 0; i < this.passos.length; i++) {
+                const classeAtivo = i === index ? 'ativo' : '';
+                tutorialHTML += `<div class="tutorial-ponto ${classeAtivo}" onclick="tutorialInterativo.mostrarPasso(${i})" title="Passo ${i+1}"></div>`;
+            }
+            
+            tutorialHTML += `</div>`;
+            tutorialHTML += `<div class="tutorial-botoes">`;
+            
+            // Botão anterior (exceto no primeiro passo)
+            if (index > 0) {
+                tutorialHTML += `<button class="tutorial-botao tutorial-botao-anterior" onclick="tutorialInterativo.passoAnterior()">Anterior</button>`;
+            } else {
+                tutorialHTML += `<div></div>`;
+            }
+            
+            // Botão próximo (ou finalizar no último passo)
+            if (index < this.passos.length - 1) {
+                tutorialHTML += `<button class="tutorial-botao tutorial-botao-proximo" onclick="tutorialInterativo.proximoPasso()">Próximo</button>`;
+            } else {
+                tutorialHTML += `<button class="tutorial-botao tutorial-botao-fechar" onclick="tutorialInterativo.fechar()">Concluir</button>`;
+            }
+            
+            tutorialHTML += `</div>`;
+            
+            this.tutorial.innerHTML = tutorialHTML;
+            
+            // Posiciona o tutorial e destaca o elemento
+            this.posicionarTutorial(passo);
+            
+            // Executa ação associada ao passo, se houver
+            if (passo.acao && typeof passo.acao === 'function') {
+                passo.acao();
+            }
+        },
+        
+        // Posiciona o tutorial em relação ao elemento alvo
+        posicionarTutorial: function(passo) {
+            const elemento = document.querySelector(passo.elemento);
+            if (!elemento) return;
+            
+            if (passo.destacar) {
+                elemento.classList.add('tutorial-elemento-destacado');
+            }
+            
+            const elementoRect = elemento.getBoundingClientRect();
+            const tutorialRect = this.tutorial.getBoundingClientRect();
+            
+            // Posicionamento baseado na posição especificada
+            let top, left;
+            
+            switch (passo.posicao) {
+                case 'acima':
+                    top = elementoRect.top - tutorialRect.height - 20;
+                    left = elementoRect.left + (elementoRect.width / 2) - (tutorialRect.width / 2);
+                    break;
+                case 'abaixo':
+                    top = elementoRect.bottom + 20;
+                    left = elementoRect.left + (elementoRect.width / 2) - (tutorialRect.width / 2);
+                    break;
+                case 'esquerda':
+                    top = elementoRect.top + (elementoRect.height / 2) - (tutorialRect.height / 2);
+                    left = elementoRect.left - tutorialRect.width - 20;
+                    break;
+                case 'direita':
+                    top = elementoRect.top + (elementoRect.height / 2) - (tutorialRect.height / 2);
+                    left = elementoRect.right + 20;
+                    break;
+                case 'centro':
+                default:
+                    top = window.innerHeight / 2 - tutorialRect.height / 2;
+                    left = window.innerWidth / 2 - tutorialRect.width / 2;
+            }
+            
+            // Ajustes para manter o tutorial na tela
+            if (top < 20) top = 20;
+            if (left < 20) left = 20;
+            if (top + tutorialRect.height > window.innerHeight - 20) top = window.innerHeight - tutorialRect.height - 20;
+            if (left + tutorialRect.width > window.innerWidth - 20) left = window.innerWidth - tutorialRect.width - 20;
+            
+            this.tutorial.style.top = `${top}px`;
+            this.tutorial.style.left = `${left}px`;
+        },
+        
+        // Avança para o próximo passo
+        proximoPasso: function() {
+            if (this.passoAtual < this.passos.length - 1) {
+                this.mostrarPasso(this.passoAtual + 1);
+            }
+        },
+        
+        // Volta para o passo anterior
+        passoAnterior: function() {
+            if (this.passoAtual > 0) {
+                this.mostrarPasso(this.passoAtual - 1);
+            }
+        },
+        
+        // Fecha o tutorial
+        fechar: function() {
+            if (!this.tutorial) return;
+            
+            // Remove destaque
+            const elementoDestacado = document.querySelector('.tutorial-elemento-destacado');
+            if (elementoDestacado) {
+                elementoDestacado.classList.remove('tutorial-elemento-destacado');
+            }
+            
+            // Remove os elementos do tutorial
+            document.body.removeChild(this.overlay);
+            document.body.removeChild(this.tutorial);
+            
+            this.tutorial = null;
+            this.overlay = null;
+            this.ativo = false;
+        },
+        
+        // Adiciona um botão permanente para acessar o tutorial na barra lateral
+        adicionarBotaoTutorial: function() {
+            // Verifica se o botão já existe
+            if (document.getElementById('tutorial-botao-sidebar')) return;
+            
+            const sidebar = document.getElementById('fixed-sidebar');
+            if (!sidebar) return;
+            
+            // Cria um novo item para a barra lateral
+            const tutorialItem = document.createElement('div');
+            tutorialItem.className = 'sidebar-item';
+            tutorialItem.innerHTML = `
+                <h4>Tutorial</h4>
+                <p style="font-size: 0.85em; margin-bottom: 10px;">
+                    Novo por aqui? Clique abaixo para um tour guiado pelo sistema.
+                </p>
+                <button id="tutorial-botao-sidebar" class="tutorial-botao-sidebar" onclick="tutorialInterativo.iniciar()">
+                    Iniciar Tutorial
+                </button>
+            `;
+            
+            // Adiciona antes do elemento de configurações (último item)
+            const configSection = sidebar.querySelector('div[style*="margin-top:30px"]');
+            if (configSection) {
+                sidebar.insertBefore(tutorialItem, configSection);
+            } else {
+                sidebar.appendChild(tutorialItem);
+            }
+        }
+    };
+
+    // Auto-inicialização quando a página carrega
+    document.addEventListener('DOMContentLoaded', function() {
+        // Adiciona botão de tutorial na barra lateral
+        tutorialInterativo.adicionarBotaoTutorial();
+        
+        // Verifica se é a primeira visita (usando localStorage)
+        const primeiroAcesso = localStorage.getItem('tutorialVisto') !== 'true';
+        if (primeiroAcesso) {
+            // Pequeno atraso para garantir que a página esteja totalmente carregada
+            setTimeout(() => {
+                tutorialInterativo.iniciar();
+                localStorage.setItem('tutorialVisto', 'true');
+            }, 1500);
+        }
+    });
     </script>
 
 </body>
