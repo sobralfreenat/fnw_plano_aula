@@ -494,30 +494,54 @@
         
         <!-- Novo seletor de planos de aula -->
         <div class="sidebar-item">
-            <h4>Planos de Aula Prontos</h4>
+            <h4>Planos de Aula</h4>
             <p style="font-size: 0.85em; margin-bottom: 10px;">
-                Selecione um plano pré-configurado:
+                Gerenciar planos:
             </p>
             <select id="planoPreConfigurado" class="url-select" style="width: 100%; margin-bottom: 8px;">
                 <option value="">Escolha um plano...</option>
                 <option value="meios_pagamento">Meios de Pagamento para E-commerce</option>
-                <option value="seguranca_ecommerce">Segurança em E-commerce</option>
-                <option value="erp_sistemas">Sistemas ERP para Empresas</option>
-                <option value="marketing_digital">Marketing Digital</option>
             </select>
-            <button class="demo-button" style="width: 100%; margin-top: 5px;" onclick="carregarPlanoPreConfigurado()">
-                Carregar Plano Selecionado
-            </button>
+            <div style="display: flex; margin-bottom: 8px;">
+                <button class="demo-button" style="flex: 1; margin-right: 4px;" onclick="carregarPlanoPreConfigurado()">
+                    Carregar Plano
+                </button>
+                <button class="demo-button" style="flex: 1; background-color: #e74c3c;" onclick="removerPlanoSelecionado()">
+                    Remover
+                </button>
+            </div>
+            <div style="display: flex; margin-bottom: 8px;">
+                <button class="demo-button" style="flex: 1; margin-right: 4px; background-color: #7f8c8d;" onclick="moverPlanoParaCima()">
+                    ▲ Mover Acima
+                </button>
+                <button class="demo-button" style="flex: 1; background-color: #7f8c8d;" onclick="moverPlanoParaBaixo()">
+                    ▼ Mover Abaixo
+                </button>
+            </div>
             <hr style="margin: 15px 0; border-top: 1px dashed #ccc;">
+            <button class="demo-button" style="width: 100%; background-color: #28a745; margin-bottom: 8px;" onclick="salvarComoNovoPlano()">
+                Salvar Atual como Novo Plano
+            </button>
             <p style="font-size: 0.85em; margin-bottom: 10px;">
-                Ou carregue um plano personalizado:
+                Importar/Exportar planos:
             </p>
+            <button class="demo-button" style="width: 100%; background-color: #3498db; margin-bottom: 8px;" onclick="exportarPlanoLocal()">
+                Exportar Plano Atual
+            </button>
             <input type="file" id="carregarPlanoInput" accept=".json" style="display: none;">
             <button class="demo-button" style="width: 100%; background-color: #17a2b8;" onclick="document.getElementById('carregarPlanoInput').click()">
-                Escolher Arquivo de Plano
+                Importar Plano de Arquivo
             </button>
         </div>
         
+        <!-- Accordion for New Module Content -->
+        <button class="accordion-header">Novo Conteúdo da Aula</button>
+        <div class="accordion-panel">
+            <p style="font-size:0.85em; color:#555; margin-bottom:8px;">Cole o texto do novo módulo/aula abaixo. A estrutura será identificada para gerar o conteúdo na página.</p>
+            <textarea id="newModuleTextarea" placeholder="Cole aqui o conteúdo do novo módulo/aula..."></textarea>
+            <button class="demo-button" style="width:100%; box-sizing:border-box;" onclick="generateModuleContent()">Gerar Conteúdo da Aula</button>
+        </div>
+
         <div class="sidebar-item">
             <h4>Assistente IA</h4>
             <input type="text" id="nameSidebarIA" class="name-input" placeholder="Nome para o Link IA">
@@ -530,14 +554,6 @@
 
             <button class="add-button" style="margin-top: 8px; width: 100%; box-sizing: border-box;" onclick="addToCollection('nameSidebarIA', 'urlSidebarIA', 'selectSidebarIA', 'sidebar_ia')">Salvar Link Atual</button>
             <button class="demo-button" onclick="handleOpenModal('urlSidebarIA')">Abrir URL do Assistente</button>
-        </div>
-
-        <!-- Accordion for New Module Content -->
-        <button class="accordion-header">Novo Conteúdo da Aula</button>
-        <div class="accordion-panel">
-            <p style="font-size:0.85em; color:#555; margin-bottom:8px;">Cole o texto do novo módulo/aula abaixo. A estrutura será identificada para gerar o conteúdo na página.</p>
-            <textarea id="newModuleTextarea" placeholder="Cole aqui o conteúdo do novo módulo/aula..."></textarea>
-            <button class="demo-button" style="width:100%; box-sizing:border-box;" onclick="generateModuleContent()">Gerar Conteúdo da Aula</button>
         </div>
 
         <!-- Spacer -->
@@ -1249,86 +1265,248 @@
                 return;
             }
             
-            // URLs dos arquivos JSON de planos predefinidos
-            const planosUrls = {
-                meios_pagamento: "planos/meios_pagamento.json",
-                seguranca_ecommerce: "planos/seguranca_ecommerce.json",
-                erp_sistemas: "planos/erp_sistemas.json",
-                marketing_digital: "planos/marketing_digital.json"
-            };
-            
-            const url = planosUrls[planoSelecionado];
-            
             // Feedback visual para o usuário
             document.querySelector('.container > h1').textContent = "Carregando plano...";
-            document.querySelector('.page-subtitle').textContent = "Por favor, aguarde enquanto carregamos o conteúdo.";
+            document.querySelector('.page-subtitle').textContent = "Por favor, aguarde...";
             
-            // Carregar o arquivo JSON
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro ao carregar o plano: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Atualizar as coleções de URLs
-                    if (data.urlCollections) {
-                        urlCollections = data.urlCollections;
-                        populateAllSelects();
-                    }
-                    
-                    // Atualizar o conteúdo HTML da aula
-                    if (data.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
-                        document.getElementById('lesson-sections-wrapper').innerHTML = data.lessonHTML;
-                        populateDynamicSelects();
-                    }
-                    
-                    // Atualizar os valores dos inputs
-                    if (data.inputs) {
-                        const inputs = data.inputs;
-                        if (document.getElementById('nameRecurso1')) document.getElementById('nameRecurso1').value = inputs.nameRecurso1 || '';
-                        if (document.getElementById('urlRecurso1')) document.getElementById('urlRecurso1').value = inputs.urlRecurso1 || '';
-                        if (document.getElementById('nameRecurso2')) document.getElementById('nameRecurso2').value = inputs.nameRecurso2 || '';
-                        if (document.getElementById('urlRecurso2')) document.getElementById('urlRecurso2').value = inputs.urlRecurso2 || '';
-                        if (document.getElementById('nameRecurso3')) document.getElementById('nameRecurso3').value = inputs.nameRecurso3 || '';
-                        if (document.getElementById('urlRecurso3')) document.getElementById('urlRecurso3').value = inputs.urlRecurso3 || '';
-                        if (document.getElementById('nameVideoRecurso0')) document.getElementById('nameVideoRecurso0').value = inputs.nameVideoRecurso0 || '';
-                        if (document.getElementById('urlVideoRecurso0')) document.getElementById('urlVideoRecurso0').value = inputs.urlVideoRecurso0 || '';
-                        if (document.getElementById('nameSidebarIA')) document.getElementById('nameSidebarIA').value = inputs.nameSidebarIA || '';
-                        if (document.getElementById('urlSidebarIA')) document.getElementById('urlSidebarIA').value = inputs.urlSidebarIA || '';
-                        
-                        // Atualizar recursos dinâmicos, se existirem
-                        if (inputs.dynamicResourceInputs && Array.isArray(inputs.dynamicResourceInputs)) {
-                            inputs.dynamicResourceInputs.forEach(dynInputData => {
-                                const nameField = document.getElementById(`nameDynRecurso${dynInputData.idIndex}`);
-                                const urlField = document.getElementById(`urlDynRecurso${dynInputData.idIndex}`);
-                                if (nameField) nameField.value = dynInputData.name || '';
-                                if (urlField) urlField.value = dynInputData.url || '';
-                            });
-                        }
-                    }
-                    
-                    // Atualizar título da página com base no plano carregado
-                    const titulos = {
-                        meios_pagamento: "Módulo 1, Aula 1: Meios de Pagamento para E-commerce",
-                        seguranca_ecommerce: "Módulo 1, Aula 2: Segurança em E-commerce",
-                        erp_sistemas: "Módulo 2, Aula 1: Sistemas ERP para Empresas",
-                        marketing_digital: "Módulo 2, Aula 2: Marketing Digital"
-                    };
-                    
-                    document.querySelector('.container > h1').textContent = titulos[planoSelecionado] || data.pageTitle || "Plano de Aula Carregado";
-                    
-                    alert("Plano de aula carregado com sucesso!");
-                })
-                .catch(error => {
-                    console.error("Erro ao carregar o plano:", error);
-                    alert("Erro ao carregar o plano de aula: " + error.message);
+            // Recuperar dados do localStorage
+            const chave = `plano_aula_${planoSelecionado}`;
+            const dadosPlanoArmazenado = localStorage.getItem(chave);
+            
+            if (dadosPlanoArmazenado) {
+                try {
+                    const data = JSON.parse(dadosPlanoArmazenado);
+                    aplicarDadosPlano(data, planoSelecionado);
+                } catch (error) {
+                    console.error("Erro ao processar dados do plano:", error);
+                    alert("Erro ao processar os dados do plano.");
                     document.querySelector('.container > h1').textContent = "Erro ao carregar";
-                    document.querySelector('.page-subtitle').textContent = "Tente novamente ou selecione outro plano.";
-                });
+                    document.querySelector('.page-subtitle').textContent = "Tente novamente.";
+                }
+            } else {
+                // Se não existir no localStorage, carregar o plano padrão do HTML
+                if (planoSelecionado === "meios_pagamento") {
+                    // Este é o plano já incluído no HTML atual
+                    document.querySelector('.container > h1').textContent = "Módulo 1, Aula 1: Meios de Pagamento para E-commerce";
+                    document.querySelector('.page-subtitle').textContent = "Identificação, Integração e Aplicação em Projetos";
+                    
+                    // Recarregar a página para restaurar o conteúdo original
+                    if (confirm("Este plano será carregado do modelo padrão. A página será recarregada. Continuar?")) {
+                        location.reload();
+                    } else {
+                        document.querySelector('.container > h1').textContent = "Operação cancelada";
+                        document.querySelector('.page-subtitle').textContent = "Selecione outra opção.";
+                    }
+                } else {
+                    alert(`Plano "${planoSelecionado}" não encontrado no armazenamento local.`);
+                    document.querySelector('.container > h1').textContent = "Plano não encontrado";
+                    document.querySelector('.page-subtitle').textContent = "Tente outro plano.";
+                }
+            }
         }
 
+        // Função para aplicar os dados de um plano carregado
+        function aplicarDadosPlano(data, planoId) {
+            // Atualizar as coleções de URLs
+            if (data.urlCollections) {
+                urlCollections = data.urlCollections;
+                populateAllSelects();
+            }
+            
+            // Atualizar o conteúdo HTML da aula
+            if (data.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
+                document.getElementById('lesson-sections-wrapper').innerHTML = data.lessonHTML;
+                populateDynamicSelects();
+            }
+            
+            // Atualizar os valores dos inputs
+            if (data.inputs) {
+                const inputs = data.inputs;
+                if (document.getElementById('nameRecurso1')) document.getElementById('nameRecurso1').value = inputs.nameRecurso1 || '';
+                if (document.getElementById('urlRecurso1')) document.getElementById('urlRecurso1').value = inputs.urlRecurso1 || '';
+                if (document.getElementById('nameRecurso2')) document.getElementById('nameRecurso2').value = inputs.nameRecurso2 || '';
+                if (document.getElementById('urlRecurso2')) document.getElementById('urlRecurso2').value = inputs.urlRecurso2 || '';
+                if (document.getElementById('nameRecurso3')) document.getElementById('nameRecurso3').value = inputs.nameRecurso3 || '';
+                if (document.getElementById('urlRecurso3')) document.getElementById('urlRecurso3').value = inputs.urlRecurso3 || '';
+                if (document.getElementById('nameVideoRecurso0')) document.getElementById('nameVideoRecurso0').value = inputs.nameVideoRecurso0 || '';
+                if (document.getElementById('urlVideoRecurso0')) document.getElementById('urlVideoRecurso0').value = inputs.urlVideoRecurso0 || '';
+                if (document.getElementById('nameSidebarIA')) document.getElementById('nameSidebarIA').value = inputs.nameSidebarIA || '';
+                if (document.getElementById('urlSidebarIA')) document.getElementById('urlSidebarIA').value = inputs.urlSidebarIA || '';
+                if (document.getElementById('newModuleTextarea')) document.getElementById('newModuleTextarea').value = inputs.newModuleTextarea || '';
+                
+                // Atualizar recursos dinâmicos, se existirem
+                if (inputs.dynamicResourceInputs && Array.isArray(inputs.dynamicResourceInputs)) {
+                    inputs.dynamicResourceInputs.forEach(dynInputData => {
+                        const nameField = document.getElementById(`nameDynRecurso${dynInputData.idIndex}`);
+                        const urlField = document.getElementById(`urlDynRecurso${dynInputData.idIndex}`);
+                        if (nameField) nameField.value = dynInputData.name || '';
+                        if (urlField) urlField.value = dynInputData.url || '';
+                    });
+                }
+            }
+            
+            // Atualizar título da página
+            if (data.pageTitle) {
+                document.querySelector('.container > h1').textContent = data.pageTitle;
+            } else {
+                // Títulos padrão para planos conhecidos
+                const titulos = {
+                    "meios_pagamento": "Módulo 1, Aula 1: Meios de Pagamento para E-commerce"
+                    // Adicionar novos títulos conforme necessário
+                };
+                document.querySelector('.container > h1').textContent = titulos[planoId] || "Plano de Aula Carregado";
+            }
+            
+            // Atualizar subtítulo
+            if (data.pageSubtitle) {
+                document.querySelector('.page-subtitle').textContent = data.pageSubtitle;
+            }
+            
+            alert("Plano de aula carregado com sucesso!");
+        }
+
+        // Salvar o plano atual como um novo plano
+        function salvarComoNovoPlano() {
+            const nomePlano = prompt("Digite um identificador único para este plano (sem espaços, apenas letras e números):");
+            
+            if (!nomePlano) return; // Usuário cancelou
+            
+            // Validar o nome do plano (apenas letras, números e underscores)
+            if (!/^[a-z0-9_]+$/i.test(nomePlano)) {
+                alert("O identificador deve conter apenas letras, números e underscores.");
+                return;
+            }
+            
+            const tituloPlano = prompt("Digite o título completo do plano:", document.querySelector('.container > h1').textContent);
+            if (!tituloPlano) return; // Usuário cancelou
+            
+            const subtituloPlano = prompt("Digite o subtítulo do plano:", document.querySelector('.page-subtitle').textContent);
+            
+            // Criar objeto com os dados do plano
+            const pageState = {
+                urlCollections: urlCollections,
+                inputs: {
+                    nameRecurso1: document.getElementById('nameRecurso1') ? document.getElementById('nameRecurso1').value : '',
+                    urlRecurso1: document.getElementById('urlRecurso1') ? document.getElementById('urlRecurso1').value : '',
+                    nameRecurso2: document.getElementById('nameRecurso2') ? document.getElementById('nameRecurso2').value : '',
+                    urlRecurso2: document.getElementById('urlRecurso2') ? document.getElementById('urlRecurso2').value : '',
+                    nameRecurso3: document.getElementById('nameRecurso3') ? document.getElementById('nameRecurso3').value : '',
+                    urlRecurso3: document.getElementById('urlRecurso3') ? document.getElementById('urlRecurso3').value : '',
+                    nameVideoRecurso0: document.getElementById('nameVideoRecurso0') ? document.getElementById('nameVideoRecurso0').value : '',
+                    urlVideoRecurso0: document.getElementById('urlVideoRecurso0') ? document.getElementById('urlVideoRecurso0').value : '',
+                    nameSidebarIA: document.getElementById('nameSidebarIA') ? document.getElementById('nameSidebarIA').value : '',
+                    urlSidebarIA: document.getElementById('urlSidebarIA') ? document.getElementById('urlSidebarIA').value : '',
+                    newModuleTextarea: document.getElementById('newModuleTextarea') ? document.getElementById('newModuleTextarea').value : '',
+                    dynamicResourceInputs: [] // Inicializa o array aqui
+                },
+                lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : '',
+                pageTitle: tituloPlano,
+                pageSubtitle: subtituloPlano
+            };
+            
+            // Adicionar recursos dinâmicos, se existirem
+            const dynamicNameInputs = document.querySelectorAll('input[id^="nameDynRecurso"]');
+            dynamicNameInputs.forEach(input => {
+                const index = input.id.replace('nameDynRecurso', '');
+                const urlInput = document.getElementById(`urlDynRecurso${index}`);
+                pageState.inputs.dynamicResourceInputs.push({
+                    idIndex: index,
+                    name: input.value,
+                    url: urlInput ? urlInput.value : ''
+                });
+            });
+            
+            // Salvar no localStorage
+            const chave = `plano_aula_${nomePlano}`;
+            localStorage.setItem(chave, JSON.stringify(pageState));
+            
+            // Atualizar a lista de planos disponíveis
+            carregarPlanosSalvos();
+            
+            // Selecionar o novo plano no dropdown
+            const seletor = document.getElementById('planoPreConfigurado');
+            seletor.value = nomePlano;
+            
+            alert(`Plano "${tituloPlano}" salvo com sucesso!`);
+        }
+        
+        // Função para exportar plano atual como arquivo local
+        function exportarPlanoLocal() {
+            console.log("Função exportar plano iniciada");
+            const tituloAtual = document.querySelector('.container > h1').textContent;
+            const subtituloAtual = document.querySelector('.page-subtitle').textContent;
+            
+            // Criar objeto com os dados do plano atual
+            const pageState = {
+                urlCollections: urlCollections,
+                inputs: {
+                    nameRecurso1: document.getElementById('nameRecurso1') ? document.getElementById('nameRecurso1').value : '',
+                    urlRecurso1: document.getElementById('urlRecurso1') ? document.getElementById('urlRecurso1').value : '',
+                    nameRecurso2: document.getElementById('nameRecurso2') ? document.getElementById('nameRecurso2').value : '',
+                    urlRecurso2: document.getElementById('urlRecurso2') ? document.getElementById('urlRecurso2').value : '',
+                    nameRecurso3: document.getElementById('nameRecurso3') ? document.getElementById('nameRecurso3').value : '',
+                    urlRecurso3: document.getElementById('urlRecurso3') ? document.getElementById('urlRecurso3').value : '',
+                    nameVideoRecurso0: document.getElementById('nameVideoRecurso0') ? document.getElementById('nameVideoRecurso0').value : '',
+                    urlVideoRecurso0: document.getElementById('urlVideoRecurso0') ? document.getElementById('urlVideoRecurso0').value : '',
+                    nameSidebarIA: document.getElementById('nameSidebarIA') ? document.getElementById('nameSidebarIA').value : '',
+                    urlSidebarIA: document.getElementById('urlSidebarIA') ? document.getElementById('urlSidebarIA').value : '',
+                    newModuleTextarea: document.getElementById('newModuleTextarea') ? document.getElementById('newModuleTextarea').value : ''
+                },
+                dynamicResourceInputs: [],
+                lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : '',
+                pageTitle: tituloAtual,
+                pageSubtitle: subtituloAtual
+            };
+            
+            // Adicionar recursos dinâmicos, se existirem
+            const dynamicNameInputs = document.querySelectorAll('input[id^="nameDynRecurso"]');
+            dynamicNameInputs.forEach(input => {
+                const index = input.id.replace('nameDynRecurso', '');
+                const urlInput = document.getElementById(`urlDynRecurso${index}`);
+                if (!pageState.inputs.dynamicResourceInputs) {
+                    pageState.inputs.dynamicResourceInputs = [];
+                }
+                pageState.inputs.dynamicResourceInputs.push({
+                    idIndex: index,
+                    name: input.value,
+                    url: urlInput ? urlInput.value : ''
+                });
+            });
+            
+            try {
+                // Gerar o arquivo para download
+                const jsonData = JSON.stringify(pageState, null, 2);
+                const blob = new Blob([jsonData], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                
+                // Criar elemento de link para download
+                const a = document.createElement('a');
+                a.href = url;
+                
+                // Criar um nome de arquivo baseado no título
+                let nomeArquivo = tituloAtual.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '_') // Substituir caracteres não alfanuméricos por _
+                    .replace(/^_+|_+$/g, '') // Remover _ do início e fim
+                    || 'plano_aula';
+                    
+                a.download = `${nomeArquivo}.json`;
+                
+                // Adicionar à página, clicar e remover
+                document.body.appendChild(a);
+                a.click();
+                
+                // Pequeno atraso antes de remover para garantir que o download comece
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    alert("Plano exportado com sucesso!");
+                }, 100);
+            } catch (error) {
+                console.error("Erro ao exportar plano:", error);
+                alert("Erro ao exportar plano: " + error.message);
+            }
+        }
+    
         // Evento para carregar arquivo de plano personalizado
         document.addEventListener('DOMContentLoaded', function() {
             const loadConfigInput = document.getElementById('loadConfigInput');
@@ -1338,9 +1516,213 @@
             
             const carregarPlanoInput = document.getElementById('carregarPlanoInput');
             if (carregarPlanoInput) {
-                carregarPlanoInput.addEventListener('change', loadPageConfigFromJson, false);
+                carregarPlanoInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                const loadedState = JSON.parse(e.target.result);
+                                aplicarDadosPlano(loadedState, '');
+                            } catch (error) {
+                                alert("Erro ao carregar o arquivo de plano: " + error);
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                    event.target.value = null; // Reset file input
+                }, false);
             }
+            
+            // Carregar planos salvos do localStorage
+            carregarPlanosSalvos();
         });
+        
+        // Função para carregar planos salvos no localStorage
+        function carregarPlanosSalvos() {
+            console.log("Carregando planos salvos...");
+            const seletor = document.getElementById('planoPreConfigurado');
+            if (!seletor) return;
+            
+            // Manter apenas a opção padrão vazia e a opção meios_pagamento
+            while (seletor.options.length > 2) {
+                seletor.remove(2);
+            }
+            
+            // Lista para armazenar os planos antes de adicioná-los ao seletor
+            let planos = [];
+            
+            // Procurar planos no localStorage
+            console.log("Total de itens no localStorage:", localStorage.length);
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                console.log("Verificando chave:", key);
+                
+                if (key && key.startsWith('plano_aula_') && key !== 'plano_aula_meios_pagamento') {
+                    try {
+                        const planoData = JSON.parse(localStorage.getItem(key));
+                        const planoId = key.replace('plano_aula_', '');
+                        const planoTitulo = planoData.pageTitle || planoId;
+                        
+                        console.log("Plano encontrado:", planoId, planoTitulo);
+                        
+                        // Adicionar à lista de planos com ordem (se existir) ou posição padrão
+                        planos.push({
+                            id: planoId,
+                            titulo: planoTitulo,
+                            ordem: planoData.ordem || 999 // Valor alto para planos sem ordem definida
+                        });
+                    } catch(e) {
+                        console.error(`Erro ao carregar plano ${key}:`, e);
+                    }
+                }
+            }
+            
+            // Ordenar os planos pela propriedade ordem
+            planos.sort((a, b) => a.ordem - b.ordem);
+            
+            // Adicionar os planos ordenados ao seletor
+            planos.forEach(plano => {
+                const novaOpcao = document.createElement('option');
+                novaOpcao.value = plano.id;
+                novaOpcao.textContent = plano.titulo;
+                seletor.appendChild(novaOpcao);
+                console.log("Opção adicionada ao dropdown:", plano.id);
+            });
+            
+            console.log("Total de opções após carregar:", seletor.options.length);
+        }
+
+        // Adicionar chamada inicial para carregarPlanosSalvos()
+        document.addEventListener('DOMContentLoaded', function() {
+            // Código existente...
+            
+            // Garantir que os planos sejam carregados quando a página iniciar
+            carregarPlanosSalvos();
+        });
+
+        // Função para remover um plano selecionado do localStorage
+        function removerPlanoSelecionado() {
+            const seletor = document.getElementById('planoPreConfigurado');
+            const planoSelecionado = seletor.value;
+            
+            if (!planoSelecionado) {
+                alert("Por favor, selecione um plano para remover.");
+                return;
+            }
+            
+            // Verificar se não é o plano padrão
+            if (planoSelecionado === "meios_pagamento") {
+                alert("O plano padrão não pode ser removido.");
+                return;
+            }
+            
+            const confirmacao = confirm(`Tem certeza que deseja remover o plano "${seletor.options[seletor.selectedIndex].text}"? Esta ação não pode ser desfeita.`);
+            
+            if (confirmacao) {
+                // Remover do localStorage
+                localStorage.removeItem(`plano_aula_${planoSelecionado}`);
+                
+                // Recarregar a lista de planos
+                carregarPlanosSalvos();
+                
+                alert("Plano removido com sucesso!");
+            }
+        }
+        
+        // Função para mover um plano para cima na ordem
+        function moverPlanoParaCima() {
+            const seletor = document.getElementById('planoPreConfigurado');
+            const selectedIndex = seletor.selectedIndex;
+            
+            // Verificar se há um plano selecionado e se não é o primeiro ou o plano em branco
+            if (selectedIndex <= 1) {
+                alert("Este plano já está no topo ou nenhum plano foi selecionado.");
+                return;
+            }
+            
+            // Obter informações dos planos que serão trocados
+            const planoAtual = {
+                valor: seletor.options[selectedIndex].value,
+                texto: seletor.options[selectedIndex].text
+            };
+            
+            const planoAnterior = {
+                valor: seletor.options[selectedIndex - 1].value,
+                texto: seletor.options[selectedIndex - 1].text
+            };
+            
+            // Para alterar a ordem, vamos adicionar uma propriedade de ordenação aos planos
+            // Primeiro, vamos carregar os planos
+            const planoAtualData = JSON.parse(localStorage.getItem(`plano_aula_${planoAtual.valor}`));
+            const planoAnteriorData = JSON.parse(localStorage.getItem(`plano_aula_${planoAnterior.valor}`));
+            
+            // Criar ou trocar a propriedade ordem
+            if (!planoAtualData.ordem) planoAtualData.ordem = selectedIndex;
+            if (!planoAnteriorData.ordem) planoAnteriorData.ordem = selectedIndex - 1;
+            
+            // Trocar as ordens
+            const tempOrdem = planoAtualData.ordem;
+            planoAtualData.ordem = planoAnteriorData.ordem;
+            planoAnteriorData.ordem = tempOrdem;
+            
+            // Salvar de volta
+            localStorage.setItem(`plano_aula_${planoAtual.valor}`, JSON.stringify(planoAtualData));
+            localStorage.setItem(`plano_aula_${planoAnterior.valor}`, JSON.stringify(planoAnteriorData));
+            
+            // Recarregar a lista
+            carregarPlanosSalvos();
+            
+            // Reselecionar o plano que foi movido
+            seletor.value = planoAtual.valor;
+        }
+        
+        // Função para mover um plano para baixo na ordem
+        function moverPlanoParaBaixo() {
+            const seletor = document.getElementById('planoPreConfigurado');
+            const selectedIndex = seletor.selectedIndex;
+            
+            // Verificar se há um plano selecionado e se não é o último
+            if (selectedIndex < 1 || selectedIndex >= seletor.options.length - 1) {
+                alert("Este plano já está no final da lista ou nenhum plano foi selecionado.");
+                return;
+            }
+            
+            // Obter informações dos planos que serão trocados
+            const planoAtual = {
+                valor: seletor.options[selectedIndex].value,
+                texto: seletor.options[selectedIndex].text
+            };
+            
+            const proximoPlano = {
+                valor: seletor.options[selectedIndex + 1].value,
+                texto: seletor.options[selectedIndex + 1].text
+            };
+            
+            // Para alterar a ordem, vamos adicionar uma propriedade de ordenação aos planos
+            // Primeiro, vamos carregar os planos
+            const planoAtualData = JSON.parse(localStorage.getItem(`plano_aula_${planoAtual.valor}`));
+            const proximoPlanoData = JSON.parse(localStorage.getItem(`plano_aula_${proximoPlano.valor}`));
+            
+            // Criar ou trocar a propriedade ordem
+            if (!planoAtualData.ordem) planoAtualData.ordem = selectedIndex;
+            if (!proximoPlanoData.ordem) proximoPlanoData.ordem = selectedIndex + 1;
+            
+            // Trocar as ordens
+            const tempOrdem = planoAtualData.ordem;
+            planoAtualData.ordem = proximoPlanoData.ordem;
+            proximoPlanoData.ordem = tempOrdem;
+            
+            // Salvar de volta
+            localStorage.setItem(`plano_aula_${planoAtual.valor}`, JSON.stringify(planoAtualData));
+            localStorage.setItem(`plano_aula_${proximoPlano.valor}`, JSON.stringify(proximoPlanoData));
+            
+            // Recarregar a lista
+            carregarPlanosSalvos();
+            
+            // Reselecionar o plano que foi movido
+            seletor.value = planoAtual.valor;
+        }
     </script>
 
     <!-- Tutorial Interativo -->
