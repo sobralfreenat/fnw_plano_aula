@@ -472,7 +472,7 @@
             box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.8);
             border-radius: 3px;
         }
-        
+        a
         .tutorial-botao-sidebar {
             background-color: #2ecc71;
             color: white;
@@ -803,13 +803,19 @@
 
         function populateSelect(selectId, resourceKey) {
             const selectElement = document.getElementById(selectId);
-            selectElement.innerHTML = ''; // Limpa opções existentes
+            // Check if the element exists before trying to modify it
+            if (!selectElement) {
+                console.warn(`[populateSelect] Elemento com ID '${selectId}' não encontrado no DOM. Pulando população para este select.`);
+                return; // Exit the function if element not found
+            }
+            selectElement.innerHTML = ''; // Limpa opções existentes ONLY IF element exists
             
             const defaultOptionText = selectElement.id.includes("Recurso1") ? "Links Salvos para Recurso 1..." : 
                                     selectElement.id.includes("Recurso2") ? "Links Salvos para Recurso 2..." : 
                                     selectElement.id.includes("Recurso3") ? "Links Salvos para Recurso 3..." :
                                     selectElement.id.includes("VideoRecurso0") ? "Vídeos Salvos..." : 
                                     selectElement.id.includes("SidebarIA") ? "Links Salvos IA..." : // For the IA sidebar button
+                                    selectElement.id.includes("DynRecurso") ? "Links Salvos..." : // For dynamic selects
                                     "Selecione um Link Salvo...";
             
             let firstOption = document.createElement('option');
@@ -1175,19 +1181,34 @@
                     newModuleTextarea: document.getElementById('newModuleTextarea') ? document.getElementById('newModuleTextarea').value : ''
                 },
                 dynamicResourceInputs: [],
-                lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : ''
+                lessonHTML: document.getElementById('lesson-sections-wrapper') ? document.getElementById('lesson-sections-wrapper').innerHTML : '',
+                planosDeAulaSalvos: {} // Novo campo para os planos de aula
             };
 
             const dynamicNameInputs = document.querySelectorAll('input[id^="nameDynRecurso"]');
             dynamicNameInputs.forEach(input => {
                 const index = input.id.replace('nameDynRecurso', '');
                 const urlInput = document.getElementById(`urlDynRecurso${index}`);
-                pageState.inputs.dynamicResourceInputs.push({
+                pageState.dynamicResourceInputs.push({
                     idIndex: index,
                     name: input.value,
                     url: urlInput ? urlInput.value : ''
                 });
             });
+
+            // Coletar todos os planos de aula do localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('plano_aula_')) {
+                    const planoId = key.replace('plano_aula_', '');
+                    // Não salvar o plano padrão 'meios_pagamento' explicitamente aqui, ele já faz parte do HTML base.
+                    // Ou podemos decidir incluí-lo se a intenção é ter uma cópia exata, mas pode causar confusão.
+                    // Por ora, vamos focar nos planos criados pelo usuário.
+                    if (planoId !== 'meios_pagamento') { 
+                        pageState.planosDeAulaSalvos[planoId] = JSON.parse(localStorage.getItem(key));
+                    }
+                }
+            }
 
             const jsonData = JSON.stringify(pageState, null, 2);
             const blob = new Blob([jsonData], {type: 'application/json'});
@@ -1203,12 +1224,53 @@
         }
 
         function loadPageConfigFromJson(event) {
+            console.log("[loadPageConfigFromJson] Iniciando carregamento de configuração JSON...");
             const file = event.target.files[0];
             if (file) {
+                console.log("[loadPageConfigFromJson] Arquivo selecionado:", file.name);
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
+                        console.log("[loadPageConfigFromJson] Arquivo lido com sucesso.");
                         const loadedState = JSON.parse(e.target.result);
+                        console.log("[loadPageConfigFromJson] Estado carregado do JSON:", loadedState);
+
+                        // Limpar planos de aula existentes no localStorage ANTES de carregar novos
+                        console.log("[loadPageConfigFromJson] Limpando planos antigos do localStorage...");
+                        let keysToRemove = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && key.startsWith('plano_aula_')) {
+                                keysToRemove.push(key);
+                            }
+                        }
+                        keysToRemove.forEach(key => {
+                            console.log(`[loadPageConfigFromJson] Removendo chave: ${key}`);
+                            localStorage.removeItem(key);
+                        });
+                        console.log("[loadPageConfigFromJson] Planos antigos removidos.");
+
+                        // Carregar planos de aula do JSON para o localStorage
+                        if (loadedState.planosDeAulaSalvos) {
+                            console.log("[loadPageConfigFromJson] Carregando planos do JSON para localStorage...");
+                            let count = 0;
+                            for (const planoId in loadedState.planosDeAulaSalvos) {
+                                if (Object.hasOwnProperty.call(loadedState.planosDeAulaSalvos, planoId)) {
+                                    const newKey = `plano_aula_${planoId}`;
+                                    const planoData = JSON.stringify(loadedState.planosDeAulaSalvos[planoId]);
+                                    console.log(`[loadPageConfigFromJson] Salvando plano: ${newKey}`);
+                                    localStorage.setItem(newKey, planoData);
+                                    count++;
+                                }
+                            }
+                            console.log(`[loadPageConfigFromJson] ${count} planos salvos no localStorage.`);
+                        } else {
+                            console.log("[loadPageConfigFromJson] Nenhum plano de aula encontrado no JSON (campo planosDeAulaSalvos).");
+                        }
+                        
+                        // Atualizar a lista de planos no dropdown
+                        console.log("[loadPageConfigFromJson] Chamando carregarPlanosSalvos() para atualizar dropdown...");
+                        carregarPlanosSalvos(); // Esta função já limpa e repopula o select
 
                         if (loadedState.urlCollections) {
                             urlCollections = loadedState.urlCollections;
@@ -1218,6 +1280,8 @@
                         
                         if (loadedState.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
                            document.getElementById('lesson-sections-wrapper').innerHTML = loadedState.lessonHTML;
+                           // É importante chamar populateDynamicSelects DEPOIS de carregar o lessonHTML
+                           // e DEPOIS de carregar urlCollections, para que os selects dinâmicos sejam populados corretamente.
                            if (loadedState.urlCollections) populateDynamicSelects(); 
                         }
 
@@ -1245,9 +1309,10 @@
                             }
                         }
 
-                        alert("Configuração da página carregada com sucesso!");
+                        alert("Arquivo de plano carregado e aplicado com sucesso!");
+
                     } catch (error) {
-                        alert("Erro ao carregar o arquivo de configuração: " + error);
+                        alert("Erro ao carregar o arquivo de plano: " + error);
                     }
                 };
                 reader.readAsText(file);
@@ -1258,70 +1323,102 @@
         // Função para carregar planos pré-configurados
         function carregarPlanoPreConfigurado() {
             const seletor = document.getElementById('planoPreConfigurado');
-            const planoSelecionado = seletor.value;
+            const planoSelecionado = seletor.value; // Este é o ID, ex: 'logistica_ecommerce'
+            const valorAnteriorDoSeletor = seletor.value; // Guardar o valor atual para possível reversão
             
             if (!planoSelecionado) {
                 alert("Por favor, selecione um plano de aula.");
                 return;
             }
             
-            // Feedback visual para o usuário
+            console.log(`[carregarPlanoPreConfigurado] Tentando carregar o plano: ${planoSelecionado}`);
             document.querySelector('.container > h1').textContent = "Carregando plano...";
-            document.querySelector('.page-subtitle').textContent = "Por favor, aguarde...";
+            document.querySelector('.container > .page-subtitle').textContent = "Por favor, aguarde...";
             
-            // Recuperar dados do localStorage
             const chave = `plano_aula_${planoSelecionado}`;
             const dadosPlanoArmazenado = localStorage.getItem(chave);
             
             if (dadosPlanoArmazenado) {
                 try {
+                    console.log(`[carregarPlanoPreConfigurado] Dados encontrados no localStorage para ${chave}.`);
                     const data = JSON.parse(dadosPlanoArmazenado);
                     aplicarDadosPlano(data, planoSelecionado);
                 } catch (error) {
-                    console.error("Erro ao processar dados do plano:", error);
+                    console.error("[carregarPlanoPreConfigurado] Erro ao processar dados do plano do localStorage:", error);
                     alert("Erro ao processar os dados do plano.");
                     document.querySelector('.container > h1').textContent = "Erro ao carregar";
-                    document.querySelector('.page-subtitle').textContent = "Tente novamente.";
+                    document.querySelector('.container > .page-subtitle').textContent = "Tente novamente.";
+                    seletor.value = valorAnteriorDoSeletor; // Reverter seleção em caso de erro
                 }
             } else {
-                // Se não existir no localStorage, carregar o plano padrão do HTML
                 if (planoSelecionado === "meios_pagamento") {
-                    // Este é o plano já incluído no HTML atual
-                    document.querySelector('.container > h1').textContent = "Módulo 1, Aula 1: Meios de Pagamento para E-commerce";
-                    document.querySelector('.page-subtitle').textContent = "Identificação, Integração e Aplicação em Projetos";
-                    
-                    // Recarregar a página para restaurar o conteúdo original
+                    console.log("[carregarPlanoPreConfigurado] Plano 'meios_pagamento' (padrão) selecionado. Solicitando recarregamento.");
                     if (confirm("Este plano será carregado do modelo padrão. A página será recarregada. Continuar?")) {
                         location.reload();
                     } else {
                         document.querySelector('.container > h1').textContent = "Operação cancelada";
-                        document.querySelector('.page-subtitle').textContent = "Selecione outra opção.";
+                        document.querySelector('.container > .page-subtitle').textContent = "Selecione outra opção.";
+                        seletor.value = ""; // Resetar para "Escolha um plano..."
                     }
                 } else {
+                    console.warn(`[carregarPlanoPreConfigurado] Plano '${planoSelecionado}' (chave: ${chave}) não encontrado no armazenamento local.`);
                     alert(`Plano "${planoSelecionado}" não encontrado no armazenamento local.`);
                     document.querySelector('.container > h1').textContent = "Plano não encontrado";
-                    document.querySelector('.page-subtitle').textContent = "Tente outro plano.";
+                    document.querySelector('.container > .page-subtitle').textContent = "Tente outro plano.";
+                    seletor.value = valorAnteriorDoSeletor; // Reverter para seleção anterior
                 }
             }
         }
 
         // Função para aplicar os dados de um plano carregado
-        function aplicarDadosPlano(data, planoId) {
-            // Atualizar as coleções de URLs
+        function aplicarDadosPlano(data, planoId) { 
+            console.log("[aplicarDadosPlano] Iniciando aplicação dos dados para o planoId:", planoId, "Dados recebidos:", JSON.parse(JSON.stringify(data)));
+
+            // 0. Limpar inputs estáticos antes de aplicar novos valores
+            console.log("[aplicarDadosPlano] Limpando valores de inputs estáticos...");
+            const staticInputIds = ['nameRecurso1', 'urlRecurso1', 'nameRecurso2', 'urlRecurso2', 'nameRecurso3', 'urlRecurso3', 'nameVideoRecurso0', 'urlVideoRecurso0', 'nameSidebarIA', 'urlSidebarIA', 'newModuleTextarea'];
+            staticInputIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.value = '';
+            });
+
+            // 1. Atualizar as coleções de URLs GLOBAIS e popular os selects ESTÁTICOS
+            console.log("[aplicarDadosPlano] Etapa 1: Processando urlCollections e selects estáticos.");
             if (data.urlCollections) {
-                urlCollections = data.urlCollections;
-                populateAllSelects();
+                urlCollections = data.urlCollections; // Atualiza a variável global
+                console.log("[aplicarDadosPlano] urlCollections globais atualizadas.", urlCollections);
+            } else {
+                console.warn("[aplicarDadosPlano] data.urlCollections não encontrado no plano. As urlCollections globais não foram alteradas.");
+                // Considerar limpar urlCollections se este for o comportamento desejado: 
+                // urlCollections = { 'recurso1': [], 'recurso2': [], 'recurso3': [], 'videoRecurso': [], 'sidebar_ia': [], /* etc para dyn_* */ };
+            }
+            populateAllSelects(); // Popula selects estáticos (Recurso1,2,3, Video, IA) com base nas urlCollections atuais
+            console.log("[aplicarDadosPlano] Selects estáticos (Rec1,2,3,Video,IA) repopulados.");
+            
+            // 2. Atualizar o conteúdo HTML da aula
+            console.log("[aplicarDadosPlano] Etapa 2: Aplicando lessonHTML.");
+            const lessonWrapper = document.getElementById('lesson-sections-wrapper');
+            if (data.lessonHTML && lessonWrapper) {
+                lessonWrapper.innerHTML = data.lessonHTML;
+                console.log("[aplicarDadosPlano] lessonHTML aplicado ao lesson-sections-wrapper.");
+            } else {
+                console.warn("[aplicarDadosPlano] data.lessonHTML não encontrado ou lesson-sections-wrapper não existe.");
+                if (lessonWrapper) {
+                    lessonWrapper.innerHTML = '<p style="color:red; font-style:italic;">Conteúdo detalhado deste plano não disponível ou não encontrado nos dados carregados.</p>';
+                    console.log("[aplicarDadosPlano] Mensagem de conteúdo não disponível inserida.");
+                }
             }
             
-            // Atualizar o conteúdo HTML da aula
-            if (data.lessonHTML && document.getElementById('lesson-sections-wrapper')) {
-                document.getElementById('lesson-sections-wrapper').innerHTML = data.lessonHTML;
-                populateDynamicSelects();
-            }
-            
-            // Atualizar os valores dos inputs
+            // 3. Repopular os selects DINÂMICOS (agora que o HTML está no DOM e urlCollections está atualizada)
+            console.log("[aplicarDadosPlano] Etapa 3: Chamando populateDynamicSelects() para os selects dentro do lessonHTML...");
+            populateDynamicSelects(); 
+            console.log("[aplicarDadosPlano] populateDynamicSelects() concluído.");
+
+            // 4. Atualizar os valores dos inputs (estáticos e dinâmicos)
+            console.log("[aplicarDadosPlano] Etapa 4: Aplicando valores dos inputs salvos...");
             if (data.inputs) {
                 const inputs = data.inputs;
+                // Inputs estáticos
                 if (document.getElementById('nameRecurso1')) document.getElementById('nameRecurso1').value = inputs.nameRecurso1 || '';
                 if (document.getElementById('urlRecurso1')) document.getElementById('urlRecurso1').value = inputs.urlRecurso1 || '';
                 if (document.getElementById('nameRecurso2')) document.getElementById('nameRecurso2').value = inputs.nameRecurso2 || '';
@@ -1333,36 +1430,63 @@
                 if (document.getElementById('nameSidebarIA')) document.getElementById('nameSidebarIA').value = inputs.nameSidebarIA || '';
                 if (document.getElementById('urlSidebarIA')) document.getElementById('urlSidebarIA').value = inputs.urlSidebarIA || '';
                 if (document.getElementById('newModuleTextarea')) document.getElementById('newModuleTextarea').value = inputs.newModuleTextarea || '';
-                
-                // Atualizar recursos dinâmicos, se existirem
+                console.log("[aplicarDadosPlano] Inputs estáticos preenchidos.");
+
+                // Inputs dinâmicos (os elementos foram recriados pelo innerHTML)
                 if (inputs.dynamicResourceInputs && Array.isArray(inputs.dynamicResourceInputs)) {
+                    console.log("[aplicarDadosPlano] Aplicando valores para inputs de recursos dinâmicos:", inputs.dynamicResourceInputs);
                     inputs.dynamicResourceInputs.forEach(dynInputData => {
                         const nameField = document.getElementById(`nameDynRecurso${dynInputData.idIndex}`);
                         const urlField = document.getElementById(`urlDynRecurso${dynInputData.idIndex}`);
-                        if (nameField) nameField.value = dynInputData.name || '';
-                        if (urlField) urlField.value = dynInputData.url || '';
+                        if (nameField) {
+                            nameField.value = dynInputData.name || '';
+                        } else {
+                            console.warn(`[aplicarDadosPlano] Campo de nome dinâmico nameDynRecurso${dynInputData.idIndex} não encontrado no DOM após carregar lessonHTML.`);
+                        }
+                        if (urlField) {
+                            urlField.value = dynInputData.url || '';
+                        } else {
+                            console.warn(`[aplicarDadosPlano] Campo de URL dinâmica urlDynRecurso${dynInputData.idIndex} não encontrado no DOM após carregar lessonHTML.`);
+                        }
                     });
+                    console.log("[aplicarDadosPlano] Inputs dinâmicos preenchidos.");
                 }
-            }
-            
-            // Atualizar título da página
-            if (data.pageTitle) {
-                document.querySelector('.container > h1').textContent = data.pageTitle;
             } else {
-                // Títulos padrão para planos conhecidos
-                const titulos = {
-                    "meios_pagamento": "Módulo 1, Aula 1: Meios de Pagamento para E-commerce"
-                    // Adicionar novos títulos conforme necessário
-                };
-                document.querySelector('.container > h1').textContent = titulos[planoId] || "Plano de Aula Carregado";
+                 console.warn("[aplicarDadosPlano] data.inputs não encontrado no plano. Inputs não foram preenchidos com dados do plano.");
             }
             
-            // Atualizar subtítulo
+            // 5. Atualizar título da página
+            console.log("[aplicarDadosPlano] Etapa 5: Atualizando título e subtítulo.");
+            const h1Element = document.querySelector('.container > h1');
+            if (data.pageTitle) {
+                h1Element.textContent = data.pageTitle;
+            } else if (planoId) { 
+                const seletor = document.getElementById('planoPreConfigurado');
+                let tituloPlanoDropdown = `Plano: ${planoId}`; // Fallback com ID
+                if (seletor) {
+                    for (let i = 0; i < seletor.options.length; i++) {
+                        if (seletor.options[i].value === planoId) {
+                            tituloPlanoDropdown = seletor.options[i].text; // Usa o texto do dropdown se disponível
+                            break;
+                        }
+                    }
+                }
+                h1Element.textContent = tituloPlanoDropdown;
+            } else {
+                h1Element.textContent = "Título do Plano Indefinido"; // Fallback genérico
+            }
+            
+            const subtitleElement = document.querySelector('.container > .page-subtitle');
             if (data.pageSubtitle) {
-                document.querySelector('.page-subtitle').textContent = data.pageSubtitle;
+                subtitleElement.textContent = data.pageSubtitle;
+            } else {
+                subtitleElement.textContent = "(Subtítulo não definido no plano)"; // Fallback claro
             }
+            console.log("[aplicarDadosPlano] Título da página atualizado para:", h1Element.textContent);
+            console.log("[aplicarDadosPlano] Subtítulo da página atualizado para:", subtitleElement.textContent);
             
-            alert("Plano de aula carregado com sucesso!");
+            console.log("[aplicarDadosPlano] Aplicação dos dados do plano concluída.");
+            alert("Plano de aula carregado e aplicado à página!"); 
         }
 
         // Salvar o plano atual como um novo plano
@@ -1540,57 +1664,66 @@
         
         // Função para carregar planos salvos no localStorage
         function carregarPlanosSalvos() {
-            console.log("Carregando planos salvos...");
+            console.log("[carregarPlanosSalvos] Iniciando carregamento de planos para o dropdown...");
             const seletor = document.getElementById('planoPreConfigurado');
-            if (!seletor) return;
+            if (!seletor) {
+                console.error("[carregarPlanosSalvos] Erro: Seletor 'planoPreConfigurado' não encontrado!");
+                return;
+            }
             
             // Manter apenas a opção padrão vazia e a opção meios_pagamento
+            console.log("[carregarPlanosSalvos] Limpando opções antigas do dropdown (exceto as 2 primeiras). Opções atuais:", seletor.options.length);
             while (seletor.options.length > 2) {
                 seletor.remove(2);
             }
+            console.log("[carregarPlanosSalvos] Opções após limpeza:", seletor.options.length);
             
             // Lista para armazenar os planos antes de adicioná-los ao seletor
             let planos = [];
             
             // Procurar planos no localStorage
-            console.log("Total de itens no localStorage:", localStorage.length);
+            console.log("[carregarPlanosSalvos] Procurando planos no localStorage... Itens totais:", localStorage.length);
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                console.log("Verificando chave:", key);
+                // console.log("[carregarPlanosSalvos] Verificando chave:", key); // Log muito verboso, comentado por padrão
                 
                 if (key && key.startsWith('plano_aula_') && key !== 'plano_aula_meios_pagamento') {
                     try {
                         const planoData = JSON.parse(localStorage.getItem(key));
                         const planoId = key.replace('plano_aula_', '');
                         const planoTitulo = planoData.pageTitle || planoId;
+                        const ordem = planoData.ordem || 999; // Valor alto para planos sem ordem definida
                         
-                        console.log("Plano encontrado:", planoId, planoTitulo);
+                        console.log(`[carregarPlanosSalvos] Plano encontrado no localStorage: ID=${planoId}, Título='${planoTitulo}', Ordem=${ordem}`);
                         
                         // Adicionar à lista de planos com ordem (se existir) ou posição padrão
                         planos.push({
                             id: planoId,
                             titulo: planoTitulo,
-                            ordem: planoData.ordem || 999 // Valor alto para planos sem ordem definida
+                            ordem: ordem
                         });
                     } catch(e) {
-                        console.error(`Erro ao carregar plano ${key}:`, e);
+                        console.error(`[carregarPlanosSalvos] Erro ao processar plano ${key}:`, e);
                     }
                 }
             }
+            console.log(`[carregarPlanosSalvos] Total de planos encontrados no localStorage (exceto padrão): ${planos.length}`);
             
             // Ordenar os planos pela propriedade ordem
             planos.sort((a, b) => a.ordem - b.ordem);
+            console.log("[carregarPlanosSalvos] Planos ordenados:", planos);
             
             // Adicionar os planos ordenados ao seletor
+            console.log("[carregarPlanosSalvos] Adicionando planos ordenados ao dropdown...");
             planos.forEach(plano => {
                 const novaOpcao = document.createElement('option');
                 novaOpcao.value = plano.id;
                 novaOpcao.textContent = plano.titulo;
                 seletor.appendChild(novaOpcao);
-                console.log("Opção adicionada ao dropdown:", plano.id);
+                // console.log("[carregarPlanosSalvos] Opção adicionada ao dropdown:", plano.id); // Log verboso
             });
             
-            console.log("Total de opções após carregar:", seletor.options.length);
+            console.log("[carregarPlanosSalvos] Carregamento concluído. Total de opções final no dropdown:", seletor.options.length);
         }
 
         // Adicionar chamada inicial para carregarPlanosSalvos()
